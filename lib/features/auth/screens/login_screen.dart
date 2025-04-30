@@ -2,10 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_warmth_2025/core/i18n/app_localizations.dart';
+import 'package:smart_warmth_2025/core/i18n/translation_keys.dart';
 import 'package:smart_warmth_2025/core/providers/auth_provider.dart';
 import 'package:smart_warmth_2025/core/providers/locale_provider.dart';
 import 'package:smart_warmth_2025/core/providers/user_provider.dart';
+import 'package:smart_warmth_2025/core/utils/validators.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_button.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_scaffold.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_text_field.dart';
 import 'package:smart_warmth_2025/shared/widgets/overlay_alert.dart';
 import 'package:smart_warmth_2025/shared/widgets/toast.dart';
 
@@ -24,6 +28,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   bool _isPasswordVisible = false;
   bool _showLanguageSelector = false;
   bool _isAuthenticationInProgress = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -43,9 +48,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }());
 
     // Verifica lo stato di autenticazione
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _checkAuth();
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   _checkAuth();
+    // });
   }
 
   // Verifica se l'utente è già autenticato
@@ -64,91 +69,116 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  Future<void> _login() async {
-    // Validazione del form
-    if (!_formKey.currentState!.validate()) {
-      return;
+  // Modifica in login_screen.dart
+
+  void _login() async {
+    // Nascondi il selettore lingua se aperto
+    if (_showLanguageSelector) {
+      setState(() {
+        _showLanguageSelector = false;
+      });
     }
 
-    // Nascondo la tastiera
-    FocusScope.of(context).unfocus();
+    if (_formKey.currentState!.validate() && !_isAuthenticationInProgress) {
+      setState(() {
+        _isAuthenticationInProgress = true;
+        _isLoading = true;
+      });
 
-    try {
-      debugPrint('LOGIN: Tentativo di login con email: ${_emailController.text}');
+      try {
+        final result = await ref.read(authStateProvider.notifier).login(
+          _emailController.text,
+          _passwordController.text,
+        );
 
-      // Ottengo l'AuthStateNotifier dal provider
-      final authNotifier = ref.read(authStateProvider.notifier);
+        // Controllo se il widget è ancora montato
+        if (!mounted) return;
 
-      // Effettuo il login
-      debugPrint('LOGIN: Esecuzione login');
-      final result = await authNotifier.login(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-      );
-
-/*      // Se il widget non è più montato, esco dalla funzione
-      if (!mounted) {
-        debugPrint('LOGIN: Widget non più montato, esco dalla funzione');
-        return;
-      }*/
-
-
-      // Verifico il risultato
-      if (result.success) {
-        debugPrint('LOGIN: Login riuscito');
-
-        // // Recupero i dati dell'utente
-        // debugPrint('LOGIN: Recupero dati utente');
-        // final userNotifier = ref.read(userStateProvider.notifier);
-        // await userNotifier.fetchUser();
-        //
-        // // Verifico se l'utente è stato caricato correttamente
-        // final userState = ref.read(userStateProvider);
-        // if (userState.user != null) {
-        //   debugPrint('LOGIN: Dati utente caricati, navigazione alla home');
-        //   debugPrint('LOGIN: Dati utente caricati, ${userState.user!.displayName}');
-
-          // Navigazione alla home
-        //  if (mounted) {
-            //debugPrint('LOGIN: Navigazione alla home');
-        Future.microtask(() {
-          debugPrint('LOGIN: Navigazione alla home');
-          if (mounted) {
-            context.go('/home');
-          } else {
-            debugPrint('LOGIN: Widget non montato durante navigazione');
-          }
+        setState(() {
+          _isLoading = false;
+          _isAuthenticationInProgress = false;
         });
 
-        //  }
-        // } else {
-        //   debugPrint('LOGIN: Errore nel caricamento dei dati utente: ${userState.error}');
-        //   ref.read(overlayAlertProvider.notifier).show(
-        //     message: userState.error ?? 'Errore nel caricamento dei dati utente',
-        //     type: OverlayAlertType.error,
-        //   );
-        // }
-      } else {
-        debugPrint('LOGIN: Errore di login: ${result.error}');
+        // Verifica esplicita del successo del login
+        if (result.success) {
+          // Utilizza un ritardo minimo per garantire che lo stato sia aggiornato
+          Future.microtask(() {
+            if (mounted) {
+              context.go('/home');
+            }
+          });
+        } else {
+          // Mostra un messaggio di errore
+          ref.read(overlayAlertProvider.notifier).show(
+            message: result.error ?? _getTranslation(TranslationKeys.errorLogin),
+            type: OverlayAlertType.error,
+          );
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoading = false;
+            _isAuthenticationInProgress = false;
+          });
 
-        // Mostro l'errore
-        ref.read(overlayAlertProvider.notifier).show(
-          message: result.error ?? AppLocalizations.of(context).translate('error_login'),
-          type: OverlayAlertType.error,
-        );
+          ref.read(overlayAlertProvider.notifier).show(
+            message: e.toString(),
+            type: OverlayAlertType.error,
+          );
+        }
       }
-    } catch (e) {
-      debugPrint('LOGIN: Eccezione durante il login: $e');
+    }
+  }
 
-      // Se il widget non è più montato, esco dalla funzione
-      if (!mounted) return;
+  void _login_old() async {
+    // Nascondi il selettore lingua se aperto
+    if (_showLanguageSelector) {
+      setState(() {
+        _showLanguageSelector = false;
+      });
+    }
 
 
-      // Mostro l'errore
-      ref.read(overlayAlertProvider.notifier).show(
-        message: e.toString(),
-        type: OverlayAlertType.error,
-      );
+    if (_formKey.currentState!.validate() && !_isAuthenticationInProgress) {
+      setState(() {
+        _isAuthenticationInProgress = true;
+      });
+      setState(() {
+        _isLoading = true;
+      });
+      try {
+        final result = await ref.read(authStateProvider.notifier).login(
+          _emailController.text,
+          _passwordController.text,
+        );
+        setState(() {
+          _isLoading = false;
+        });
+        // Dopo il login, otteniamo lo stato attuale
+        final authState = ref.read(authStateProvider);
+
+        // Se l'autenticazione è avvenuta con successo e il widget è ancora montato
+        if (authState == AuthState.authenticated && mounted) {
+          // Naviga alla home
+          context.go('/home');
+        }
+        if (!result.success && mounted) {
+          // Mostra un messaggio di errore
+          ref.read(overlayAlertProvider.notifier).show(
+            message: result.error ?? _getTranslation(TranslationKeys.errorLogin),
+            type: OverlayAlertType.error,
+          );
+        }
+      } catch (e) {
+        // Gestione errori specifica in caso di necessità
+        print("Errore di login: $e");
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isAuthenticationInProgress = false;
+          });
+        }
+      }
     }
   }
 
@@ -161,7 +191,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authState = ref.watch(authStateProvider);
     final isLoading = authState == AuthState.loading || _isAuthenticationInProgress;
     return AppScaffold(
-        title: _getTranslation('login'),
+        title: _getTranslation(TranslationKeys.login),
         showBackButton: false,
         actions: [
           IconButton(
@@ -182,123 +212,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     key: _formKey,
                     child: ListView(
                       children: [
-                        Text(
-                          _getTranslation('email'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
+                        AppTextField(
                           controller: _emailController,
-                          decoration: InputDecoration(
-                            hintText: _getTranslation('enter_email'),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                          ),
+                          label: _getTranslation(TranslationKeys.email),
+                          hintText: _getTranslation(TranslationKeys.enterEmail),
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return _getTranslation('email_required');
-                            }
-                            if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$')
-                                .hasMatch(value)) {
-                              return _getTranslation('valid_email_required');
-                            }
-                            return null;
-                          },
+                          validator: (value) => Validator.validateEmail(context, value),
+                          //onSubmitted: (_) => _passwordFocusNode.requestFocus(),
                         ),
                         const SizedBox(height: 24),
-                        Text(
-                          _getTranslation('password'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 16,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        TextFormField(
+                        AppTextField(
                           controller: _passwordController,
-                          decoration: InputDecoration(
-                            hintText: _getTranslation('enter_password'),
-                            filled: true,
-                            fillColor: Colors.white,
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(8),
-                              borderSide: BorderSide.none,
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 16,
-                              vertical: 16,
-                            ),
-                            suffixIcon: IconButton(
-                              icon: Icon(
-                                _isPasswordVisible
-                                    ? Icons.visibility_off
-                                    : Icons.visibility,
-                                color: Colors.grey,
-                              ),
-                              onPressed: () {
-                                setState(() {
-                                  _isPasswordVisible = !_isPasswordVisible;
-                                });
-                              },
-                            ),
-                          ),
+                          label: _getTranslation(TranslationKeys.password),
+                          hintText: _getTranslation(TranslationKeys.enterPassword),
                           obscureText: !_isPasswordVisible,
                           textInputAction: TextInputAction.done,
-                          onFieldSubmitted: (_) => _login(),
-                          validator: (value) {
-                            if (value == null || value.isEmpty) {
-                              return _getTranslation('password_required');
-                            }
-                            return null;
-                          },
+                          validator: (value) => Validator.validatePassword(context,value),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                              color: Colors.white,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _isPasswordVisible = !_isPasswordVisible;
+                              });
+                            },
+                          ),
+                          //onSubmitted: (_) => _login(),
                         ),
                         const SizedBox(height: 32),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: isLoading ? null : _login,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.grey[400],
-                              foregroundColor: Colors.white,
-                              padding:
-                              const EdgeInsets.symmetric(vertical: 16),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              disabledBackgroundColor: Colors.grey[300],
-                            ),
-                            child: isLoading
-                                ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                                : Text(
-                              _getTranslation('login'),
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
+                        AppButton(
+                          text: _getTranslation(TranslationKeys.login),
+                          isLoading: _isLoading,
+                          style: AppButtonStyle.primary,
+                          onPressed: _login,
                         ),
                         const SizedBox(height: 16),
                         Column(
@@ -313,7 +262,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.white,
                               ),
-                              child: Text(_getTranslation('forgot_password')),
+                              child: Text(_getTranslation(TranslationKeys.forgotPassword)),
                             ),
                             TextButton(
                               onPressed: () {
@@ -324,7 +273,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.white,
                               ),
-                              child: Text(_getTranslation('register')),
+                              child: Text(_getTranslation(TranslationKeys.register)),
                             ),
                             TextButton(
                               onPressed: () {
@@ -335,7 +284,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               style: TextButton.styleFrom(
                                 foregroundColor: Colors.white,
                               ),
-                              child: Text(_getTranslation('contact_us')),
+                              child: Text(_getTranslation(TranslationKeys.contactUs)),
                             ),
                           ],
                         ),
@@ -370,7 +319,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Text(
-                                _getTranslation('change_language'),
+                                _getTranslation(TranslationKeys.changeLanguage),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.bold,

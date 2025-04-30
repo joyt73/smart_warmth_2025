@@ -2,19 +2,26 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_warmth_2025/core/i18n/app_localizations.dart';
+import 'package:smart_warmth_2025/core/i18n/translation_keys.dart';
 import 'package:smart_warmth_2025/core/providers/auth_provider.dart';
+import 'package:smart_warmth_2025/core/utils/validators.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_button.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_scaffold.dart';
 import 'package:smart_warmth_2025/shared/widgets/alert_message.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_text_field.dart';
+import 'package:smart_warmth_2025/shared/widgets/overlay_alert.dart';
 
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  ConsumerState<ForgotPasswordScreen> createState() =>
+      _ForgotPasswordScreenState();
 }
 
 class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   final _emailController = TextEditingController();
+  final _emailFocus = FocusNode();
   final _formKey = GlobalKey<FormState>();
   bool _emailSent = false;
   bool _isProcessing = false;
@@ -26,6 +33,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   }
 
   void _resetPassword() async {
+    // Valida il form esplicitamente
+
     if (_formKey.currentState!.validate() && !_isProcessing) {
       setState(() {
         _isProcessing = true;
@@ -47,8 +56,13 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           setState(() {
             _isProcessing = false;
           });
+
+          // Mostra un messaggio di errore
+          ref.read(overlayAlertProvider.notifier).show(
+            message: e.toString(),
+            type: OverlayAlertType.error,
+          );
         }
-        // L'errore viene gestito dal provider
       }
     }
   }
@@ -59,11 +73,12 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final authState = ref.watch(authStateProvider);
     final isLoading = authState == AuthState.loading || _isProcessing;
 
     return AppScaffold(
-      title: _getTranslation('password_recovery'),
+      title: _getTranslation(TranslationKeys.passwordRecovery),
       useDarkBackground: false,
       body: Padding(
         padding: const EdgeInsets.all(24.0),
@@ -72,97 +87,27 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const SizedBox(height: 100,),
-
-              // Utilizziamo il widget AlertMessage per il messaggio di conferma
-              if (_emailSent)
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  margin: const EdgeInsets.only(bottom: 24),
-                  width: double.infinity,
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _getTranslation('email_sent'),
-                    style: const TextStyle(
-                      color: Colors.black87,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-
-              Text(
-                _getTranslation('email'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
+              const SizedBox(
+                height: 100,
               ),
-              const SizedBox(height: 8),
-              TextFormField(
+
+              AppTextField(
                 controller: _emailController,
-                enabled: !_emailSent,
-                decoration: InputDecoration(
-                  hintText: _getTranslation('enter_email'),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                ),
+                label: _getTranslation(TranslationKeys.email),
+                hintText: _getTranslation(TranslationKeys.enterEmail),
                 keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return _getTranslation('email_required');
-                  }
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                    return _getTranslation('valid_email_required');
-                  }
-                  return null;
-                },
+                validator: (value) => Validator.validateEmail(context, value),
               ),
               const SizedBox(height: 32),
-
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
+                child: AppButton(
+                  text: _getTranslation(TranslationKeys.resetPassword),
+                  style: AppButtonStyle.reversed,
+                  isLoading: isLoading,
                   onPressed: isLoading || _emailSent ? null : _resetPassword,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.grey[400],
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    disabledBackgroundColor: Colors.grey[300],
-                  ),
-                  child: isLoading
-                      ? SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                      : Text(
-                    _getTranslation('reset_password'),
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
                 ),
               ),
-
               if (_emailSent)
                 Padding(
                   padding: const EdgeInsets.only(top: 32.0),
@@ -172,7 +117,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          _getTranslation('password_recovery_sent'),
+                          _getTranslation(TranslationKeys.emailSent),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 16,
@@ -180,7 +125,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          _getTranslation('check_spam_folder'),
+                          _getTranslation(TranslationKeys.checkSpam),
                           style: const TextStyle(
                             color: Colors.white70,
                             fontSize: 14,
@@ -196,7 +141,8 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                 Padding(
                   padding: const EdgeInsets.only(top: 16.0),
                   child: AlertMessage(
-                    message: authState.error ?? _getTranslation('error_generic'),
+                    message: authState.error ??
+                        _getTranslation(TranslationKeys.errorGeneric),
                     type: AlertType.error,
                   ),
                 ),
@@ -213,7 +159,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.white,
                       ),
-                      child: Text(_getTranslation('login')),
+                      child: Text(_getTranslation(TranslationKeys.login)),
                     ),
                   ),
                 ),
@@ -224,5 +170,3 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
     );
   }
 }
-
-//                   validator: (value) => Validator.validateEmail(context, value),
