@@ -26,23 +26,22 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/login',
     redirect: (BuildContext context, GoRouterState state) {
       // Ottieni lo stato corrente di autenticazione
-      final isLoggedIn = authState == AuthState.authenticated;
+      final isLoggedIn = authState.state == AuthState.authenticated;
+      final isLoading = authState.state == AuthState.loading;
 
-      // Definisci quali percorsi sono accessibili senza autenticazione
+      if (isLoading) return null;
+
       final publicPaths = ['/login', '/register', '/forgot-password', '/contact'];
       final isPublicPath = publicPaths.contains(state.matchedLocation);
 
-      // Se non è autenticato e sta cercando di accedere a un percorso protetto
       if (!isLoggedIn && !isPublicPath) {
         return '/login';
       }
 
-      // Se è autenticato e sta cercando di accedere a login o registrazione
-      if (isLoggedIn && (state.matchedLocation == '/login' || state.matchedLocation == '/register')) {
+      if (isLoggedIn && isPublicPath) {
+        if (state.matchedLocation == '/home') return null;
         return '/home';
       }
-
-      // In tutti gli altri casi non fare alcun reindirizzamento
       return null;
     },
     routes: [

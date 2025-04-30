@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_warmth_2025/config/themes.dart';
 import 'package:smart_warmth_2025/core/i18n/app_localizations.dart';
+import 'package:smart_warmth_2025/core/i18n/translation_keys.dart';
 import 'package:smart_warmth_2025/core/providers/auth_provider.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_scaffold.dart';
 import 'package:smart_warmth_2025/shared/widgets/snack_bar_extension.dart';
@@ -35,17 +36,17 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
 
     // Ritardiamo l'inizializzazione per assicurarci che il provider sia pronto
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      //_precompileData();
+      _precompileData();
     });
   }
 
 
-/*  void _precompileData() {
+  void _precompileData() {
     // Otteniamo lo stato dell'autenticazione
     final authState = ref.read(authStateProvider);
 
     // Se l'utente è autenticato, precompiliamo i dati
-    if (authState.status == AuthStatus.authenticated &&
+    if (authState == AuthState.authenticated &&
         authState.user != null) {
       _senderController.text = authState.user!.displayName;
 
@@ -63,7 +64,7 @@ User:
 Email:
 Platform:android''';
     }
-  }*/
+  }
   @override
   void dispose() {
     _senderController.dispose();
@@ -74,16 +75,16 @@ Platform:android''';
   void _sendMessage() {
     if (_formKey.currentState!.validate() && _selectedProblem != null) {
       // Utilizziamo l'estensione per mostrare lo SnackBar di successo
-      context.showSuccessSnackBar(_getTranslation('message_sent'));
+      context.showSuccessSnackBar(_getTranslation(TranslationKeys.messageSent));
 
       // Reimpostare il form
-      //_precompileData(); // Ripristiniamo i dati precompilati
+      _precompileData(); // Ripristiniamo i dati precompilati
       setState(() {
         _selectedProblem = null;
       });
     } else if (_selectedProblem == null) {
       // Utilizziamo l'estensione per mostrare lo SnackBar di errore
-      context.showErrorSnackBar(_getTranslation('select_problem'));
+      context.showErrorSnackBar(_getTranslation(TranslationKeys.selectProblem));
     }
   }
 
@@ -99,7 +100,7 @@ Platform:android''';
     final availableHeight = screenHeight - appBarHeight - statusBarHeight;
 
     return AppScaffold(
-      title: _getTranslation('contact_us'),
+      title: _getTranslation(TranslationKeys.contactUs),
       useDarkBackground: true,
       body: SafeArea(
         child: GestureDetector(
@@ -127,7 +128,7 @@ Platform:android''';
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _getTranslation('contact_us'),
+                            _getTranslation(TranslationKeys.contactUs),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 18,
@@ -138,7 +139,7 @@ Platform:android''';
 
                           // Selettore problema (come pulsante che apre il menu)
                           Text(
-                            _getTranslation('select_problem'),
+                            _getTranslation(TranslationKeys.selectProblem),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -172,7 +173,7 @@ Platform:android''';
                                   Text(
                                     _selectedProblem != null
                                         ? _getTranslation(_selectedProblem!)
-                                        : _getTranslation('select_problem'),
+                                        : _getTranslation(TranslationKeys.selectProblem),
                                     style: TextStyle(
                                       color: _selectedProblem != null
                                           ? Colors.black87
@@ -194,7 +195,7 @@ Platform:android''';
 
                           // Campo mittente
                           Text(
-                            _getTranslation('sender'),
+                            _getTranslation(TranslationKeys.sender),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -205,7 +206,7 @@ Platform:android''';
                           TextFormField(
                             controller: _senderController,
                             decoration: InputDecoration(
-                              hintText: _getTranslation('enter_username'),
+                              hintText: _getTranslation(TranslationKeys.enterUsername),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -219,7 +220,7 @@ Platform:android''';
                             ),
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return _getTranslation('username_required');
+                                return _getTranslation(TranslationKeys.usernameRequired);
                               }
                               return null;
                             },
@@ -228,7 +229,7 @@ Platform:android''';
 
                           // Campo messaggio
                           Text(
-                            _getTranslation('message'),
+                            _getTranslation(TranslationKeys.message),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -239,7 +240,7 @@ Platform:android''';
                           TextFormField(
                             controller: _messageController,
                             decoration: InputDecoration(
-                              hintText: _getTranslation('message'),
+                              hintText: _getTranslation(TranslationKeys.message),
                               filled: true,
                               fillColor: Colors.white,
                               border: OutlineInputBorder(
@@ -254,7 +255,7 @@ Platform:android''';
                             maxLines: 8,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
-                                return _getTranslation('message') + ' ' + _getTranslation('email_required').toLowerCase();
+                                return _getTranslation(TranslationKeys.message) + ' ' + _getTranslation(TranslationKeys.emailRequired).toLowerCase();
                               }
                               return null;
                             },
@@ -275,7 +276,7 @@ Platform:android''';
                                 ),
                               ),
                               child: Text(
-                                _getTranslation('send_email'),
+                                _getTranslation(TranslationKeys.sendEmail),
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
@@ -314,7 +315,7 @@ Platform:android''';
                         Padding(
                           padding: const EdgeInsets.all(16.0),
                           child: Text(
-                            _getTranslation('select_problem'),
+                            _getTranslation(TranslationKeys.selectProblem),
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.bold,

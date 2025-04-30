@@ -510,8 +510,7 @@ class Translations {
       'email_sent': 'Un e-mail a été envoyé à votre adresse',
       'check_spam':
       'Si vous ne voyez pas l’e-mail, veuillez vérifier votre dossier SPAM.',
-      'password_recovery_sent':
-      'Un e-mail a été envoyé pour la récupération du mot de passe',
+      'password_recovery_sent': 'Un e-mail a été envoyé pour la récupération du mot de passe',
       'check_spam_folder':
       'Si vous ne voyez pas l’e-mail, veuillez vérifier votre dossier SPAM.',
 
@@ -686,8 +685,7 @@ class Translations {
       'email_sent': 'Se ha enviado un correo a tu dirección',
       'check_spam':
       'Si no ves el correo, revisa tu carpeta de SPAM.',
-      'password_recovery_sent':
-      'Se ha enviado un correo para recuperar la contraseña',
+      'password_recovery_sent': 'Se ha enviado un correo para recuperar la contraseña',
       'check_spam_folder':
       'Si no ves el correo, revisa tu carpeta de SPAM.',
 

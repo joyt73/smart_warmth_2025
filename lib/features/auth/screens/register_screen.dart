@@ -2,8 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_warmth_2025/core/i18n/app_localizations.dart';
+import 'package:smart_warmth_2025/core/i18n/translation_keys.dart';
 import 'package:smart_warmth_2025/core/providers/auth_provider.dart';
+import 'package:smart_warmth_2025/core/utils/validators.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_button.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_scaffold.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_text_field.dart';
+import 'package:smart_warmth_2025/shared/widgets/overlay_alert.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -17,41 +22,107 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  final _emailFocusNode = FocusNode();
+  final _passwordFocusNode = FocusNode();
+
   bool _isPasswordVisible = false;
   bool _acceptTerms = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _usernameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
+    _emailFocusNode.dispose();
+    _passwordFocusNode.dispose();
     super.dispose();
   }
 
-  void _register() async {
-    if (_formKey.currentState!.validate() && _acceptTerms) {
-      try {
-        await ref.read(authStateProvider.notifier).register(
-          _usernameController.text,
-          _emailController.text,
-          _passwordController.text,
-        );
+  // Modifica in register_screen.dart
 
-        final authState = ref.read(authStateProvider);
-        if (authState == AuthState.authenticated) {
-          if (mounted) {
-            context.go('/home');
-          }
-        }
-      } catch (e) {
-        // L'errore viene gestito dal provider
+  Future<void> _register() async {
+    if (!_formKey.currentState!.validate() || !_acceptTerms) {
+      if (!_acceptTerms) {
+        ref.read(overlayAlertProvider.notifier).show(
+          message: AppLocalizations.of(context).translate(TranslationKeys.acceptTerms),
+          type: OverlayAlertType.error,
+        );
       }
-    } else if (!_acceptTerms) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(_getTranslation('accept_terms')),
-          backgroundColor: Colors.red,
-        ),
+      return;
+    }
+
+    final displayName = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final authNotifier = ref.read(authStateProvider.notifier);
+    final result = await authNotifier.register(displayName, email, password);
+
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (result.success) {
+      // Mostra un messaggio di successo
+      ref.read(overlayAlertProvider.notifier).show(
+        message: "Registrazione completata con successo!",
+        type: OverlayAlertType.success,
+      );
+
+      // Naviga alla home dopo un breve ritardo
+      Future.delayed(const Duration(seconds: 1), () {
+        if (mounted) {
+          context.go('/home');
+        }
+      });
+    } else {
+      // Mostra un messaggio di errore
+      ref.read(overlayAlertProvider.notifier).show(
+        message: result.error ?? AppLocalizations.of(context).translate(TranslationKeys.errorGeneric),
+        type: OverlayAlertType.error,
+      );
+    }
+  }
+
+  Future<void> _register_old() async {
+    if (!_formKey.currentState!.validate() || !_acceptTerms) {
+      if (!_acceptTerms) {
+        // Mostra errore per l'accettazione dei termini
+        ref.read(overlayAlertProvider.notifier).show(
+          message: AppLocalizations.of(context).translate(TranslationKeys.acceptTerms),
+          type: OverlayAlertType.error,
+        );
+      }
+      return;
+    }
+
+    final displayName = _usernameController.text.trim();
+    final email = _emailController.text.trim();
+    final password = _passwordController.text.trim();
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    final authNotifier = ref.read(authStateProvider.notifier);
+    final result = await authNotifier.register(displayName, email, password);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (!result.success && mounted) {
+      // Mostra un messaggio di errore
+      ref.read(overlayAlertProvider.notifier).show(
+        message: result.error ?? AppLocalizations.of(context).translate(TranslationKeys.errorGeneric),
+        type: OverlayAlertType.error,
       );
     }
   }
@@ -70,7 +141,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     final availableHeight = screenHeight - appBarHeight - statusBarHeight;
 
     return AppScaffold(
-      title: _getTranslation('registration'),
+      title: _getTranslation(TranslationKeys.register),
       useDarkBackground: false,
       body: SafeArea(
         child: SingleChildScrollView(
@@ -87,119 +158,44 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     // Rimuoviamo il SizedBox con altezza fissa che stava creando spazio vuoto
-                    Text(
-                      _getTranslation('username'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    TextFormField(
+                    AppTextField(
                       controller: _usernameController,
-                      decoration: InputDecoration(
-                        hintText: _getTranslation('enter_username'),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                      ),
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return _getTranslation('username_required');
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _getTranslation('email'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      label: _getTranslation(TranslationKeys.username),
+                      hintText: _getTranslation(TranslationKeys.enterUsername),
+                      textInputAction: TextInputAction.next,
+                      validator: (value) => Validator.validateUsername(context, value),
                     ),
                     const SizedBox(height: 8),
-                    TextFormField(
+                    AppTextField(
                       controller: _emailController,
-                      decoration: InputDecoration(
-                        hintText: _getTranslation('enter_email'),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                      ),
+                      focusNode: _emailFocusNode,
+                      label: _getTranslation(TranslationKeys.email),
+                      hintText: _getTranslation(TranslationKeys.enterEmail),
                       keyboardType: TextInputType.emailAddress,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return _getTranslation('email_required');
-                        }
-                        if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                          return _getTranslation('valid_email_required');
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _getTranslation('password'),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                      textInputAction: TextInputAction.next,
+                      validator: (value) => Validator.validateEmail(context, value),
+                      //onSubmitted: (_) => _passwordFocusNode.requestFocus(),
                     ),
                     const SizedBox(height: 8),
-                    TextFormField(
+                    AppTextField(
                       controller: _passwordController,
-                      decoration: InputDecoration(
-                        hintText: _getTranslation('enter_password'),
-                        filled: true,
-                        fillColor: Colors.white,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
-                            color: Colors.grey,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _isPasswordVisible = !_isPasswordVisible;
-                            });
-                          },
-                        ),
-                      ),
+                      focusNode: _passwordFocusNode,
+                      label: _getTranslation(TranslationKeys.password),
+                      hintText: _getTranslation(TranslationKeys.enterPassword),
                       obscureText: !_isPasswordVisible,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return _getTranslation('password_required');
-                        }
-                        if (value.length < 6) {
-                          return _getTranslation('password_too_short');
-                        }
-                        return null;
-                      },
+                      textInputAction: TextInputAction.done,
+                      validator: (value) => Validator.validatePassword(context, value),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible ? Icons.visibility_off : Icons.visibility,
+                          color: Colors.grey,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
                     ),
                     const SizedBox(height: 24),
                     Row(
@@ -227,7 +223,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               // Mostra i termini e condizioni (potresti implementare un dialogo o una nuova pagina)
                             },
                             child: Text(
-                              _getTranslation('terms_and_conditions'),
+                              _getTranslation(TranslationKeys.termsAndConditions),
                               style: const TextStyle(
                                 color: Colors.white,
                                 decoration: TextDecoration.underline,
@@ -240,33 +236,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     const SizedBox(height: 32),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: isLoading ? null : _register,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.grey[400],
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          disabledBackgroundColor: Colors.grey[300],
-                        ),
-                        child: isLoading
-                            ? SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                            : Text(
-                          _getTranslation('register'),
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                      child:
+                      AppButton(
+                        text: _getTranslation(TranslationKeys.register),
+                        isLoading: _isLoading,
+                        style: AppButtonStyle.primary,
+                        onPressed: _register,
                       ),
                     ),
                   ],

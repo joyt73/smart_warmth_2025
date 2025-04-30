@@ -103,7 +103,7 @@ class PasswordRecoveryConfirmation extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                translatedRecoverySent,
+                translatedMessage,
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 16,
@@ -111,7 +111,7 @@ class PasswordRecoveryConfirmation extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               Text(
-                translatedCheckSpam,
+                translatedSpamMessage,
                 style: const TextStyle(
                   color: Colors.white70,
                   fontSize: 14,

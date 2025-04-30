@@ -1,0 +1,19 @@
+flutter_native_splash:
+  color: "#1A4A4A"
+  image: assets/images/logo-app-smart-warmth.png
+
+  #branding: assets/branding-acceptance.png
+  #branding_bottom_padding: 24
+  #color_dark: "#121212"
+  #image_dark: assets/logo-acceptance.png
+  #branding_dark: assets/branding-acceptance.png
+
+  android_12:
+    image: assets/images/logo-app-smart-warmth.png
+    icon_background_color: "#1A4A4A"
+    #image_dark: assets/logo-acceptance.png
+    #icon_background_color_dark: "#121212"
+
+  android: true
+  ios: true
+  web: false
