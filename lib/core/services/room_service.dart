@@ -1,115 +1,189 @@
-// lib/services/room_service.dart
+// lib/core/services/room_service.dart
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:smart_warmth_2025/core/graphql/client.dart';
 import 'package:smart_warmth_2025/core/graphql/errors/error_handler.dart';
 import 'package:smart_warmth_2025/core/graphql/mutations/room_mutations.dart';
-
-
-class RoomResult<T> {
-  final bool success;
-  final T? data;
-  final String? error;
-
-  RoomResult({required this.success, this.data, this.error});
-}
+import 'package:smart_warmth_2025/core/graphql/queries/room_queries.dart';
+import 'package:smart_warmth_2025/features/room/models/room_model.dart';
 
 class RoomService {
   final GraphQLClientService _clientService = GraphQLClientService.instance;
 
-  // Crea una nuova stanza
-  Future<RoomResult<String>> createRoom(String name) async {
-    try {
-      final createRoomInput = {
-        'name': name,
-      };
 
-      final MutationOptions options = MutationOptions(
-        document: gql(RoomMutations.createRoom),
-        variables: {
-          'input': createRoomInput,
-        },
+  // Recupera tutte le stanze dell'utente
+  Future<List<RoomModel>> fetchRooms() async {
+    try {
+      final result = await _clientService.client.query(
+        QueryOptions(
+          document: gql(RoomQueries.viewerWithRooms),
+          fetchPolicy: FetchPolicy.networkOnly,
+        ),
       );
 
-      final result = await _clientService.client.mutate(options);
-
       if (result.hasException) {
-        return RoomResult(
-          success: false,
-          error: ErrorHandlerNew.getMessageFromGraphQLError(result.exception?.graphqlErrors),
+        final error = ErrorHandlerNew.getMessageFromGraphQLError(
+          result.exception?.graphqlErrors,
         );
+        throw Exception(error);
       }
 
-      final roomName = result.data?['createRoom']['name'] as String;
-      return RoomResult(success: true, data: roomName);
+      final roomsData = result.data?['viewer']['rooms'] as List<dynamic>?;
+      if (roomsData == null) {
+        return [];
+      }
+
+      return roomsData.map((room) => RoomModel.fromJson(room)).toList();
     } catch (e) {
-      return RoomResult(success: false, error: e.toString());
+      throw Exception('Errore durante il recupero delle stanze: ${e.toString()}');
     }
   }
 
-  // Modifica una stanza
-  Future<RoomResult<bool>> editRoom({
-    required String roomId,
-    String? name,
-    List<String>? thermostats,
-  }) async {
+  // Crea una nuova stanza
+  Future<RoomModel?> createRoom(String name) async {
     try {
-      final Map<String, dynamic> editRoomInput = {
-        'id': roomId,
-      };
-
-      if (name != null) editRoomInput['name'] = name;
-      if (thermostats != null) editRoomInput['thermostats'] = thermostats;
-
-      final MutationOptions options = MutationOptions(
-        document: gql(RoomMutations.editRoom),
-        variables: {
-          'input': editRoomInput,
-        },
+      final result = await _clientService.client.mutate(
+        MutationOptions(
+          document: gql(RoomMutations.createRoom),
+          variables: {
+            'input': {
+              'name': name,
+            },
+          },
+        ),
       );
 
-      final result = await _clientService.client.mutate(options);
-
       if (result.hasException) {
-        return RoomResult(
-          success: false,
-          error: ErrorHandlerNew.getMessageFromGraphQLError(result.exception?.graphqlErrors),
+        final error = ErrorHandlerNew.getMessageFromGraphQLError(
+          result.exception?.graphqlErrors,
         );
+        throw Exception(error);
       }
 
-      final success = result.data?['editRoom']['success'] as bool;
-      return RoomResult(success: success, data: success);
+      // Poiché la risposta potrebbe non contenere tutte le informazioni necessarie,
+      // ricarica tutte le stanze
+      final rooms = await fetchRooms();
+      final newRoom = rooms.firstWhere(
+            (room) => room.name == name,
+        orElse: () => throw Exception('Stanza creata ma non trovata'),
+      );
+
+      return newRoom;
     } catch (e) {
-      return RoomResult(success: false, error: e.toString());
+      throw Exception('Errore durante la creazione della stanza: ${e.toString()}');
     }
   }
 
   // Elimina una stanza
-  Future<RoomResult<bool>> deleteRoom(String roomId) async {
+  Future<bool> deleteRoom(String roomId) async {
     try {
-      final deleteRoomInput = {
-        'id': roomId,
-      };
-
-      final MutationOptions options = MutationOptions(
-        document: gql(RoomMutations.deleteRoom),
-        variables: {
-          'input': deleteRoomInput,
-        },
+      final result = await _clientService.client.mutate(
+        MutationOptions(
+          document: gql(RoomMutations.deleteRoom),
+          variables: {
+            'input': {
+              'id': roomId,
+            },
+          },
+        ),
       );
 
-      final result = await _clientService.client.mutate(options);
-
       if (result.hasException) {
-        return RoomResult(
-          success: false,
-          error: ErrorHandlerNew.getMessageFromGraphQLError(result.exception?.graphqlErrors),
+        final error = ErrorHandlerNew.getMessageFromGraphQLError(
+          result.exception?.graphqlErrors,
         );
+        throw Exception(error);
       }
 
-      final success = result.data?['deleteRoom']['success'] as bool;
-      return RoomResult(success: success, data: success);
+      final success = result.data?['deleteRoom']['success'] as bool? ?? false;
+      return success;
     } catch (e) {
-      return RoomResult(success: false, error: e.toString());
+      throw Exception('Errore durante l\'eliminazione della stanza: ${e.toString()}');
+    }
+  }
+
+  // Aggiunge un dispositivo a una stanza
+  Future<bool> addDeviceToRoom(String roomId, String deviceId) async {
+    try {
+      // Prima recuperiamo la stanza per ottenere l'elenco attuale dei dispositivi
+      final rooms = await fetchRooms();
+      final room = rooms.firstWhere(
+            (room) => room.id == roomId,
+        orElse: () => throw Exception('Stanza non trovata'),
+      );
+
+      // Otteniamo tutti gli ID dei dispositivi attuali e aggiungiamo il nuovo
+      final List<String> deviceIds = room.thermostats.map((device) => device.id).toList();
+      if (!deviceIds.contains(deviceId)) {
+        deviceIds.add(deviceId);
+      }
+
+      // Inviamo la richiesta di aggiornamento
+      final result = await _clientService.client.mutate(
+        MutationOptions(
+          document: gql(RoomMutations.editRoom),
+          variables: {
+            'input': {
+              'id': roomId,
+              'thermostats': deviceIds,
+            },
+          },
+        ),
+      );
+
+      if (result.hasException) {
+        final error = ErrorHandlerNew.getMessageFromGraphQLError(
+          result.exception?.graphqlErrors,
+        );
+        throw Exception(error);
+      }
+
+      final success = result.data?['editRoom']['success'] as bool? ?? false;
+      return success;
+    } catch (e) {
+      throw Exception('Errore durante l\'aggiunta del dispositivo alla stanza: ${e.toString()}');
+    }
+  }
+
+  // Rimuove un dispositivo da una stanza
+  Future<bool> removeDeviceFromRoom(String roomId, String deviceId) async {
+    try {
+      // Prima recuperiamo la stanza per ottenere l'elenco attuale dei dispositivi
+      final rooms = await fetchRooms();
+      final room = rooms.firstWhere(
+            (room) => room.id == roomId,
+        orElse: () => throw Exception('Stanza non trovata'),
+      );
+
+      // Rimuoviamo il dispositivo dall'elenco
+      final List<String> deviceIds = room.thermostats
+          .map((device) => device.id)
+          .where((id) => id != deviceId)
+          .toList();
+
+      // Inviamo la richiesta di aggiornamento
+      final result = await _clientService.client.mutate(
+        MutationOptions(
+          document: gql(RoomMutations.editRoom),
+          variables: {
+            'input': {
+              'id': roomId,
+              'thermostats': deviceIds,
+            },
+          },
+        ),
+      );
+
+      if (result.hasException) {
+        final error = ErrorHandlerNew.getMessageFromGraphQLError(
+          result.exception?.graphqlErrors,
+        );
+        throw Exception(error);
+      }
+
+      final success = result.data?['editRoom']['success'] as bool? ?? false;
+      return success;
+    } catch (e) {
+      throw Exception('Errore durante la rimozione del dispositivo dalla stanza: ${e.toString()}');
     }
   }
 }

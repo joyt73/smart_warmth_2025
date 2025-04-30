@@ -14,5 +14,6 @@ class AssetsRes {
   static const String BOOTSPLASH_LOGO_600 = 'assets/bootsplash_logo_600.png';
   static const String BOOTSPLASH_LOGO_900 = 'assets/bootsplash_logo_900.png';
   static const String BOOTSPLASH_MANIFEST = 'assets/bootsplash_manifest.json';
+  static const String ICONA_APP_SMART_WARMTH_OLD = 'assets/images/icona-app-smart-warmth_old.png';
   static const String LOGO_APP = 'assets/images/logo_app.png';
 }

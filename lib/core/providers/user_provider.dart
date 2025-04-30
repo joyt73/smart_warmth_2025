@@ -103,15 +103,15 @@ class UserStateNotifier extends StateNotifier<UserState> {
 
     final updatedRooms = state.user!.rooms.map((room) {
       // Rimuovi il dispositivo anche dalle stanze
-      if (room.deviceIds != null && room.deviceIds!.contains(deviceId)) {
-        final updatedDeviceIds = room.deviceIds!
+      if (room.thermostats != null && room.thermostats!.contains(deviceId)) {
+        final updatedDeviceIds = room.thermostats!
             .where((id) => id != deviceId)
             .toList();
 
         return RoomModel(
           id: room.id,
           name: room.name,
-          deviceIds: updatedDeviceIds,
+          thermostats: updatedDeviceIds,
         );
       }
       return room;

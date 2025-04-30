@@ -76,6 +76,7 @@ flutter:
     - assets/bootsplash_logo_900.png
     - assets/bootsplash_manifest.json
     - assets/images/
+    - assets/images/icona-app-smart-warmth_old.png
     - assets/images/logo_app.png
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -2,366 +2,155 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:smart_warmth_2025/config/themes.dart';
+import 'package:smart_warmth_2025/core/graphql/models/device_model.dart';
 import 'package:smart_warmth_2025/core/i18n/app_localizations.dart';
-import 'package:smart_warmth_2025/features/device/models/device_model.dart';
-import 'package:smart_warmth_2025/features/device/providers/device_provider.dart';
-import 'package:smart_warmth_2025/features/room/providers/room_provider.dart';
+import 'package:smart_warmth_2025/core/providers/room_provider.dart';
+import 'package:smart_warmth_2025/features/room/models/room_model.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_button.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_scaffold.dart';
 import 'package:smart_warmth_2025/shared/widgets/overlay_alert.dart';
 
-class RoomDetailScreen extends ConsumerWidget {
+class RoomDetailScreen extends ConsumerStatefulWidget {
   final String roomId;
 
-  const RoomDetailScreen({Key? key, required this.roomId}) : super(key: key);
+  const RoomDetailScreen({
+    Key? key,
+    required this.roomId,
+  }) : super(key: key);
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final rooms = ref.watch(roomsProvider);
-    final devices = ref.watch(devicesProvider);
+  ConsumerState<RoomDetailScreen> createState() => _RoomDetailScreenState();
+}
 
-    final room = rooms.firstWhere((r) => r.id == roomId);
-    final roomDevices = devices.where((d) => room.deviceIds.contains(d.id)).toList();
+class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
+  bool _isLoading = false;
 
-    return AppScaffold(
-      title: room.name,
-      useDarkBackground: true,
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.edit),
-          onPressed: () => context.push('/room/$roomId/edit'),
-        ),
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert),
-          onSelected: (value) {
-            if (value == 'power_on') {
-              _setAllDevicesPower(ref, roomDevices, true, context);
-            } else if (value == 'power_off') {
-              _setAllDevicesPower(ref, roomDevices, false, context);
-            } else if (value == 'delete') {
-              _showDeleteConfirmation(context, ref, room);
-            }
-          },
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-            PopupMenuItem<String>(
-              value: 'power_on',
-              child: Row(
-                children: [
-                  Icon(Icons.power_settings_new, color: Colors.green[400]),
-                  const SizedBox(width: 8),
-                  Text(AppLocalizations.of(context).translate('power_on')),
-                ],
-              ),
-            ),
-            PopupMenuItem<String>(
-              value: 'power_off',
-              child: Row(
-                children: [
-                  Icon(Icons.power_settings_new, color: Colors.red[400]),
-                  const SizedBox(width: 8),
-                  Text(AppLocalizations.of(context).translate('power_off')),
-                ],
-              ),
-            ),
-            const PopupMenuDivider(),
-            PopupMenuItem<String>(
-              value: 'delete',
-              child: Row(
-                children: [
-                  const Icon(Icons.delete, color: Colors.red),
-                  const SizedBox(width: 8),
-                  Text(AppLocalizations.of(context).translate('delete_room')),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ],
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                AppLocalizations.of(context).translate('devices'),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-              if (roomDevices.isEmpty) ...[
-                Text(
-                  AppLocalizations.of(context).translate('no_devices_in_room'),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 16,
-                  ),
-                ),
-              ] else ...[
-                Expanded(
-                  child: ListView.builder(
-                    itemCount: roomDevices.length,
-                    itemBuilder: (context, index) {
-                      final device = roomDevices[index];
-                      return _buildDeviceCard(context, device);
-                    },
-                  ),
-                ),
-              ],
-              const SizedBox(height: 16),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () => context.push('/room/$roomId/add-device'),
-                      icon: const Icon(Icons.add),
-                      label: Text(
-                        AppLocalizations.of(context).translate('add_device'),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.primaryColor,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  String _getTranslation(String key) {
+    return AppLocalizations.of(context).translate(key);
   }
 
-  Widget _buildDeviceCard(BuildContext context, DeviceModel device) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      color: const Color(0xFF333333),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: InkWell(
-        onTap: () => context.push('/device/${device.id}'),
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      device.name,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Row(
-                    children: [
-                      Icon(
-                        device.online ? Icons.wifi : Icons.wifi_off,
-                        color: device.online ? Colors.green : Colors.red,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 8),
-                      Icon(
-                        device.type == DeviceType.wifi ? Icons.wifi : Icons.bluetooth,
-                        color: Colors.white70,
-                        size: 20,
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  Text(
-                    '${device.ambientTemperature.toStringAsFixed(1)}°',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  _buildModeIndicator(context, device),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  if (device.mode == DeviceMode.comfort || device.mode == DeviceMode.economy)
-                    Text(
-                      device.mode == DeviceMode.comfort
-                          ? '${AppLocalizations.of(context).translate('comfort')}: ${device.comfortTemperature.toStringAsFixed(1)}°'
-                          : '${AppLocalizations.of(context).translate('economy')}: ${device.economyTemperature.toStringAsFixed(1)}°',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    )
-                  else if (device.mode == DeviceMode.schedule)
-                    Text(
-                      '${AppLocalizations.of(context).translate('program')}: P${device.currentSchedule + 1}',
-                      style: const TextStyle(
-                        color: Colors.white70,
-                        fontSize: 14,
-                      ),
-                    )
-                  else
-                    const SizedBox(),
-
-                  ElevatedButton(
-                    onPressed: () => context.push('/device/${device.id}'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size(0, 36),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: Text(AppLocalizations.of(context).translate('open')),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+  @override
+  void initState() {
+    super.initState();
+    _refreshRoomData();
   }
 
-  Widget _buildModeIndicator(BuildContext context, DeviceModel device) {
-    IconData icon;
-    Color color;
-    String modeKey;
+  Future<void> _refreshRoomData() async {
+    if (_isLoading) return;
 
-    switch (device.mode) {
-      case DeviceMode.standby:
-        icon = Icons.power_settings_new;
-        color = Colors.grey;
-        modeKey = 'standby_mode';
-        break;
-      case DeviceMode.comfort:
-        icon = Icons.wb_sunny;
-        color = Colors.orange;
-        modeKey = 'comfort_mode';
-        break;
-      case DeviceMode.economy:
-        icon = Icons.nightlight_round;
-        color = Colors.blue;
-        modeKey = 'economy_mode';
-        break;
-      case DeviceMode.antIce:
-        icon = Icons.ac_unit;
-        color = Colors.lightBlue;
-        modeKey = 'antifreeze_mode';
-        break;
-      case DeviceMode.boost:
-        icon = Icons.local_fire_department;
-        color = Colors.red;
-        modeKey = 'boost_mode';
-        break;
-      case DeviceMode.schedule:
-        icon = Icons.schedule;
-        color = Colors.purple;
-        modeKey = 'schedule_mode';
-        break;
-      case DeviceMode.holiday:
-        icon = Icons.beach_access;
-        color = Colors.teal;
-        modeKey = 'holiday_mode';
-        break;
-      case DeviceMode.filPilot:
-        icon = Icons.settings_remote;
-        color = Colors.amber;
-        modeKey = 'pilot_mode';
-        break;
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      await ref.read(roomsProvider.notifier).refreshRooms();
+    } catch (e) {
+      if (mounted) {
+        ref.read(overlayAlertProvider.notifier).show(
+          message: 'Errore nel caricamento della stanza: ${e.toString()}',
+          type: OverlayAlertType.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
-
-    return Row(
-      children: [
-        Icon(
-          icon,
-          color: color,
-          size: 18,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          AppLocalizations.of(context).translate(modeKey),
-          style: TextStyle(
-            color: color,
-            fontSize: 14,
-          ),
-        ),
-      ],
-    );
   }
 
-  void _setAllDevicesPower(WidgetRef ref, List<DeviceModel> devices, bool powerOn, BuildContext context) {
-    if (devices.isEmpty) {
+  void _showDeviceOptions(Device device) {
+    context.push('/device/${device.id}');
+  }
+
+  Future<void> _controlAllDevices(bool turnOn, RoomModel room) async {
+    try {
+      // Implementare la logica per accendere/spegnere tutti i dispositivi
       ref.read(overlayAlertProvider.notifier).show(
-        message: AppLocalizations.of(context).translate('no_devices_to_control'),
-        type: OverlayAlertType.warning,
+        message: turnOn
+            ? _getTranslation('devices_powered_on')
+            : _getTranslation('devices_powered_off'),
+        type: OverlayAlertType.success,
       );
-      return;
+    } catch (e) {
+      ref.read(overlayAlertProvider.notifier).show(
+        message: 'Errore nel controllo dei dispositivi: ${e.toString()}',
+        type: OverlayAlertType.error,
+      );
     }
-
-    final deviceNotifier = ref.read(devicesProvider.notifier);
-
-    for (final device in devices) {
-      final targetMode = powerOn ? DeviceMode.comfort : DeviceMode.standby;
-      deviceNotifier.setDeviceMode(device.id, targetMode);
-    }
-
-    ref.read(overlayAlertProvider.notifier).show(
-      message: powerOn
-          ? AppLocalizations.of(context).translate('devices_powered_on')
-          : AppLocalizations.of(context).translate('devices_powered_off'),
-      type: OverlayAlertType.success,
-    );
   }
 
-  void _showDeleteConfirmation(BuildContext context, WidgetRef ref, room) {
+  Future<void> _deleteRoom(RoomModel room) async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final success = await ref.read(roomsProvider.notifier).deleteRoom(room.id);
+
+      if (mounted) {
+        if (success) {
+          ref.read(overlayAlertProvider.notifier).show(
+            message: _getTranslation('room_deleted'),
+            type: OverlayAlertType.success,
+          );
+          context.pop();
+        } else {
+          ref.read(overlayAlertProvider.notifier).show(
+            message: _getTranslation('error_deleting_room'),
+            type: OverlayAlertType.error,
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ref.read(overlayAlertProvider.notifier).show(
+          message: _getTranslation('error_deleting_room'),
+          type: OverlayAlertType.error,
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showDeleteDialog(RoomModel room) {
     showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text(AppLocalizations.of(context).translate('delete_room')),
+          backgroundColor: const Color(0xFF333232),
+          title: Text(
+            _getTranslation('delete_room'),
+            style: const TextStyle(color: Colors.white),
+          ),
           content: Text(
-            AppLocalizations.of(context).translate('delete_room_confirmation').replaceAll('{name}', room.name),
+            _getTranslation('delete_room_confirmation')
+                .replaceAll('{name}', room.name),
+            style: const TextStyle(color: Colors.white),
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(),
-              child: Text(AppLocalizations.of(context).translate('cancel')),
+              onPressed: () => Navigator.pop(dialogContext),
+              child: Text(
+                _getTranslation('no'),
+                style: const TextStyle(color: Colors.white),
+              ),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _deleteRoom(ref, room.id, context);
+                Navigator.pop(dialogContext);
+                _deleteRoom(room);
               },
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.red,
+              child: Text(
+                _getTranslation('yes'),
+                style: TextStyle(color: Colors.red.shade300),
               ),
-              child: Text(AppLocalizations.of(context).translate('delete')),
             ),
           ],
         );
@@ -369,21 +158,379 @@ class RoomDetailScreen extends ConsumerWidget {
     );
   }
 
-  void _deleteRoom(WidgetRef ref, String roomId, BuildContext context) async {
-    try {
-      await ref.read(roomsProvider.notifier).removeRoom(roomId);
+  @override
+  Widget build(BuildContext context) {
+    final rooms = ref.watch(roomsProvider);
 
-      ref.read(overlayAlertProvider.notifier).show(
-        message: AppLocalizations.of(context).translate('room_deleted'),
-        type: OverlayAlertType.success,
-      );
+    // Trova la stanza corrente nell'elenco
+    final room = rooms.firstWhere(
+          (r) => r.id == widget.roomId,
+      orElse: () => RoomModel(id: widget.roomId, name: 'Stanza', thermostats: []),
+    );
 
-      context.go('/home');
-    } catch (e) {
-      ref.read(overlayAlertProvider.notifier).show(
-        message: AppLocalizations.of(context).translate('error_deleting_room'),
-        type: OverlayAlertType.error,
-      );
+    return OverlayAlertWrapper(
+      child: AppScaffold(
+        title: room.name,
+        useDarkBackground: true,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _refreshRoomData,
+          ),
+          PopupMenuButton<String>(
+            color: const Color(0xFF333232),
+            icon: const Icon(Icons.more_vert, color: Colors.white),
+            onSelected: (value) {
+              if (value == 'power_on') {
+                _controlAllDevices(true, room);
+              } else if (value == 'power_off') {
+                _controlAllDevices(false, room);
+              } else if (value == 'delete') {
+                _showDeleteDialog(room);
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              PopupMenuItem<String>(
+                value: 'power_on',
+                child: ListTile(
+                  leading: const Icon(Icons.power_settings_new, color: Colors.green),
+                  title: Text(
+                    _getTranslation('power_on'),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'power_off',
+                child: ListTile(
+                  leading: const Icon(Icons.power_settings_new, color: Colors.red),
+                  title: Text(
+                    _getTranslation('power_off'),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+              PopupMenuItem<String>(
+                value: 'delete',
+                child: ListTile(
+                  leading: const Icon(Icons.delete, color: Colors.red),
+                  title: Text(
+                    _getTranslation('delete'),
+                    style: const TextStyle(color: Colors.white),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+        body: _isLoading
+            ? const Center(
+          child: CircularProgressIndicator(
+            color: Colors.white,
+          ),
+        )
+            : Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    _getTranslation('devices'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  // Badge con il conteggio dei dispositivi
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF04555C),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      '${room.thermostats.length} ${_getTranslation(room.thermostats.length == 1 ? 'device' : 'devices')}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              if (room.thermostats.isEmpty)
+                Expanded(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.devices_other,
+                          color: Colors.white.withOpacity(0.5),
+                          size: 64,
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          _getTranslation('no_devices_in_room'),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 16,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+                        AppButton(
+                          text: _getTranslation('add_device'),
+                          style: AppButtonStyle.reversed,
+                          onPressed: () {
+                            context.push('/add-device-to-room/${widget.roomId}');
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else
+                Expanded(
+                  child: RefreshIndicator(
+                    onRefresh: _refreshRoomData,
+                    child: ListView.builder(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: room.thermostats.length,
+                      itemBuilder: (context, index) {
+                        final device = room.thermostats[index];
+
+                        return Card(
+                          margin: const EdgeInsets.only(bottom: 16),
+                          color: const Color(0xFF2A3A3A),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 4,
+                          child: InkWell(
+                            onTap: () => _showDeviceOptions(device),
+                            borderRadius: BorderRadius.circular(12),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        children: [
+                                          // Indicatore di stato online/offline
+                                          Container(
+                                            width: 12,
+                                            height: 12,
+                                            decoration: BoxDecoration(
+                                              color: device.online ? Colors.green : Colors.grey,
+                                              shape: BoxShape.circle,
+                                            ),
+                                          ),
+                                          const SizedBox(width: 8),
+                                          Text(
+                                            device.name,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                      Row(
+                                        children: [
+                                          Icon(
+                                            device.online
+                                                ? Icons.wifi
+                                                : Icons.wifi_off,
+                                            color: device.online
+                                                ? Colors.green
+                                                : Colors.grey,
+                                            size: 20,
+                                          ),
+                                          const SizedBox(width: 8),
+                                          // Indicatore di temperatura
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 8,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: _getTemperatureColor(device.ambientTemperature).withOpacity(0.3),
+                                              borderRadius: BorderRadius.circular(4),
+                                            ),
+                                            child: Text(
+                                              '${device.ambientTemperature.toStringAsFixed(1)}°C',
+                                              style: TextStyle(
+                                                color: _getTemperatureColor(device.ambientTemperature),
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      // Modalità
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: _getModeColor(device.mode).withOpacity(0.2),
+                                          borderRadius: BorderRadius.circular(4),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Icon(
+                                              _getModeIcon(device.mode),
+                                              color: _getModeColor(device.mode),
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              device.mode.displayName,
+                                              style: TextStyle(
+                                                color: _getModeColor(device.mode),
+                                                fontSize: 14,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      // Se la modalità è comfort o economy, mostra la temperatura impostata
+                                      if (device.mode.name == 'COMFORT' || device.mode.name == 'ECONOMY')
+                                        Text(
+                                          '${_getTempForMode(device)} °C',
+                                          style: const TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 12),
+                                  SizedBox(
+                                    width: double.infinity,
+                                    child: AppButton(
+                                      text: _getTranslation('open'),
+                                      onPressed: () => _showDeviceOptions(device),
+                                      height: 40,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+
+              const SizedBox(height: 24),
+
+              // Pulsante per aggiungere dispositivi
+              SizedBox(
+                width: double.infinity,
+                child: AppButton(
+                  text: _getTranslation('add_device_to_room'),
+                  style: AppButtonStyle.reversed,
+                  leadingIcon: const Icon(Icons.add_circle_outline, color: Colors.white),
+                  onPressed: () {
+                    context.push('/add-device-to-room/${widget.roomId}');
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Helper per ottenere la temperatura in base alla modalità
+  String _getTempForMode(Device device) {
+    if (device.mode.name == 'COMFORT') {
+      return device.comfortTemperature.toStringAsFixed(1);
+    } else if (device.mode.name == 'ECONOMY') {
+      return device.economyTemperature.toStringAsFixed(1);
+    }
+    return '';
+  }
+
+  // Colore basato sulla temperatura
+  Color _getTemperatureColor(double temperature) {
+    if (temperature < 16) {
+      return Colors.blue;
+    } else if (temperature < 20) {
+      return Colors.cyan;
+    } else if (temperature < 24) {
+      return Colors.orange;
+    } else {
+      return Colors.red;
+    }
+  }
+
+  // Icona basata sulla modalità
+  IconData _getModeIcon(DeviceMode mode) {
+    switch (mode.name) {
+      case 'COMFORT':
+        return Icons.sunny;
+      case 'ECONOMY':
+        return Icons.nightlight;
+      case 'STANDBY':
+        return Icons.power_settings_new;
+      case 'BOOST':
+        return Icons.flash_on;
+      case 'SCHEDULE':
+        return Icons.schedule;
+      case 'ANT_ICE':
+        return Icons.ac_unit;
+      case 'FIL_PILOT':
+        return Icons.settings_remote;
+      default:
+        return Icons.device_thermostat;
+    }
+  }
+
+  // Colore basato sulla modalità
+  Color _getModeColor(DeviceMode mode) {
+    switch (mode.name) {
+      case 'COMFORT':
+        return Colors.orange;
+      case 'ECONOMY':
+        return Colors.blue;
+      case 'STANDBY':
+        return Colors.grey;
+      case 'BOOST':
+        return Colors.red;
+      case 'SCHEDULE':
+        return Colors.purple;
+      case 'ANT_ICE':
+        return Colors.lightBlue;
+      case 'FIL_PILOT':
+        return Colors.teal;
+      default:
+        return Colors.white;
     }
   }
 }

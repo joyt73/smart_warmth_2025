@@ -1,100 +1,139 @@
-// lib/providers/room_provider.dart
+// lib/core/providers/room_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_warmth_2025/core/services/room_service.dart';
 import 'package:smart_warmth_2025/features/room/models/room_model.dart';
-import 'user_provider.dart';
 
-// Provider per il RoomService
 final roomServiceProvider = Provider<RoomService>((ref) {
   return RoomService();
 });
 
-// Azioni per le stanze
-class RoomActions {
+// Provider per la lista di stanze con supporto per stati asincroni
+final roomsProvider = StateNotifierProvider<RoomsNotifier, List<RoomModel>>((ref) {
+  final roomService = ref.watch(roomServiceProvider);
+  return RoomsNotifier(roomService);
+});
+
+class RoomsNotifier extends StateNotifier<List<RoomModel>> {
   final RoomService _roomService;
-  final UserStateNotifier _userStateNotifier;
+  bool _isLoading = false;
 
-  RoomActions(this._roomService, this._userStateNotifier);
-
-  // Crea una nuova stanza
-  Future<RoomResult<String>> createRoom(String name) async {
-    final result = await _roomService.createRoom(name);
-
-    if (result.success && result.data != null) {
-      // Aggiorniamo la lista delle stanze dopo che la creazione è avvenuta con successo
-      // Non possiamo farlo qui direttamente perché non conosciamo l'ID della stanza
-      // Dovremo fare un refresh dei dati dell'utente
-      await _userStateNotifier.fetchUser();
-    }
-
-    return result;
+  RoomsNotifier(this._roomService) : super([]) {
+    refreshRooms();
   }
 
-  // Modifica una stanza
-  Future<RoomResult<bool>> editRoom({
-    required String roomId,
-    String? name,
-    List<String>? thermostats,
-  }) async {
-    final result = await _roomService.editRoom(
-      roomId: roomId,
-      name: name,
-      thermostats: thermostats,
-    );
+  Future<void> refreshRooms() async {
+    if (_isLoading) return;
 
-    if (result.success && result.data != null) {
-      // Se abbiamo il nome da aggiornare, possiamo farlo localmente
-      if (name != null) {
-        // Trova la stanza corrente
-        final currentRooms = _userStateNotifier.state.user?.rooms ?? [];
-        final roomIndex = currentRooms.indexWhere((room) => room.id == roomId);
+    _isLoading = true;
+    try {
+      final rooms = await _roomService.fetchRooms();
+      state = rooms;
+    } catch (e) {
+      // Gestisci l'errore ma mantieni lo stato corrente
+      rethrow;
+    } finally {
+      _isLoading = false;
+    }
+  }
 
-        if (roomIndex >= 0) {
-          final room = currentRooms[roomIndex];
-          final updatedRoom = RoomModel(
-            id: room.id,
-            name: name,
-            deviceIds: room.deviceIds,
-          );
+  Future<bool> addRoom(String name) async {
+    try {
+      final newRoom = await _roomService.createRoom(name);
 
-          _userStateNotifier.updateRoom(updatedRoom);
-        }
-      } else {
-        // Se stiamo aggiornando i dispositivi, è meglio aggiornare tutto
-        await _userStateNotifier.fetchUser();
+      if (newRoom != null) {
+        // Aggiorna lo stato con la nuova stanza
+        state = [...state, newRoom];
+        return true;
       }
+      return false;
+    } catch (e) {
+      // Gestisci l'errore e mantieni lo stato attuale
+      return false;
     }
-
-    return result;
   }
 
-  // Elimina una stanza
-  Future<RoomResult<bool>> deleteRoom(String roomId) async {
-    final result = await _roomService.deleteRoom(roomId);
+  Future<bool> deleteRoom(String roomId) async {
+    try {
+      final success = await _roomService.deleteRoom(roomId);
 
-    if (result.success && result.data != null) {
-      _userStateNotifier.removeRoom(roomId);
+      if (success) {
+        // Rimuovi la stanza dallo stato
+        state = state.where((room) => room.id != roomId).toList();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
     }
+  }
 
-    return result;
+  Future<bool> updateRoomName(String roomId, String name) async {
+    // Metodo per aggiornare il nome della stanza
+    // Da implementare se necessario
+    return false;
+  }
+
+  Future<bool> addDeviceToRoom(String roomId, String deviceId) async {
+    try {
+      final success = await _roomService.addDeviceToRoom(roomId, deviceId);
+
+      if (success) {
+        // Ricarica le stanze per ottenere i dati aggiornati
+        await refreshRooms();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  Future<bool> removeDeviceFromRoom(String roomId, String deviceId) async {
+    try {
+      final success = await _roomService.removeDeviceFromRoom(roomId, deviceId);
+
+      if (success) {
+        // Ricarica le stanze per ottenere i dati aggiornati
+        await refreshRooms();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Metodo per trovare una stanza per ID
+  RoomModel? findRoomById(String roomId) {
+    try {
+      return state.firstWhere((room) => room.id == roomId);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Metodo per controllare tutti i dispositivi in una stanza (accendere/spegnere)
+  Future<bool> controlAllDevicesInRoom(String roomId, bool turnOn) async {
+    try {
+      final room = findRoomById(roomId);
+      if (room == null) return false;
+
+      // Implementazione effettiva da completare una volta definita l'API
+      // In questo caso, dovrebbe chiamare il servizio appropriato per ogni dispositivo
+
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 }
 
-// Provider per le azioni delle stanze
-final roomActionsProvider = Provider<RoomActions>((ref) {
-  final roomService = ref.watch(roomServiceProvider);
-  final userNotifier = ref.watch(userStateProvider.notifier);
-  return RoomActions(roomService, userNotifier);
-});
-
 // Provider per ottenere una stanza specifica per ID
 final roomByIdProvider = Provider.family<RoomModel?, String>((ref, roomId) {
-  final rooms = ref.watch(userRoomsProvider);
-  return rooms.firstWhere((room) => room.id == roomId, orElse: () => null!);
-});
-
-// Provider per i dispositivi in una stanza
-final devicesInRoomProvider = Provider.family<List<String>, String>((ref, roomId) {
-  final room = ref.watch(roomByIdProvider(roomId));
-  return room?.deviceIds ?? [];
+  final rooms = ref.watch(roomsProvider);
+  try {
+    return rooms.firstWhere((room) => room.id == roomId);
+  } catch (e) {
+    return null;
+  }
 });

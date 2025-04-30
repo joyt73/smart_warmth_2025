@@ -1,3 +1,46 @@
+// lib/core/services/device_service.dart
+import 'package:graphql_flutter/graphql_flutter.dart';
+import 'package:smart_warmth_2025/core/graphql/client.dart';
+import 'package:smart_warmth_2025/core/graphql/errors/error_handler.dart';
+import 'package:smart_warmth_2025/core/graphql/queries/device_queries.dart';
+import 'package:smart_warmth_2025/core/graphql/models/device_model.dart';
+
+class DeviceService {
+  final GraphQLClientService _clientService = GraphQLClientService.instance;
+
+  // Recupera tutti i dispositivi dell'utente
+// Esempio di adattamento nel DeviceService
+  Future<List<Device>> fetchDevices() async {
+    try {
+      final result = await _clientService.client.query(
+        QueryOptions(
+          document: gql(DeviceQueries.viewerWithDevices),
+          fetchPolicy: FetchPolicy.networkOnly,
+        ),
+      );
+
+      if (result.hasException) {
+        final error = ErrorHandlerNew.getMessageFromGraphQLError(
+          result.exception?.graphqlErrors,
+        );
+        throw Exception(error);
+      }
+
+      final devicesData = result.data?['viewer']['thermostats']['edges'] as List<dynamic>?;
+      if (devicesData == null) {
+        return [];
+      }
+
+      return devicesData
+          .map((edge) => Device.fromJson(edge['node']))
+          .toList();
+    } catch (e) {
+      throw Exception('Errore durante il recupero dei dispositivi: ${e.toString()}');
+    }
+  }
+}
+
+/*
 // lib/services/device_service.dart
 import 'package:graphql_flutter/graphql_flutter.dart';
 import 'package:smart_warmth_2025/core/graphql/client.dart';
@@ -512,4 +555,4 @@ class DeviceService {
 
     return result;
   }
-}
+}*/

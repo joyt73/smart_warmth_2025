@@ -7,6 +7,7 @@ class AppScaffold extends StatelessWidget {
   final bool showBackButton;
   final VoidCallback? onBackPressed;
   final bool useDarkBackground;
+  final bool centerTitle;
 
   const AppScaffold({
     Key? key,
@@ -16,6 +17,8 @@ class AppScaffold extends StatelessWidget {
     this.showBackButton = true,
     this.onBackPressed,
     this.useDarkBackground = false,
+    this.centerTitle = true,
+
   }) : super(key: key);
 
   @override
@@ -26,6 +29,7 @@ class AppScaffold extends StatelessWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: centerTitle,
         title: title != null ? Text(title!) : null,
         actions: actions,
         leading: showBackButton

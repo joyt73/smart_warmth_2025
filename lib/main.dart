@@ -9,10 +9,9 @@ import 'package:smart_warmth_2025/config/themes.dart';
 import 'package:smart_warmth_2025/core/graphql/client.dart';
 import 'package:smart_warmth_2025/core/i18n/app_localizations.dart';
 import 'package:smart_warmth_2025/core/providers/locale_provider.dart';
+import 'package:smart_warmth_2025/core/providers/room_provider.dart';
 import 'package:smart_warmth_2025/core/providers/utility_provider.dart';
 import 'package:smart_warmth_2025/features/device/providers/device_provider.dart';
-import 'package:smart_warmth_2025/features/room/providers/room_provider.dart';
-import 'package:smart_warmth_2025/features/settings/providers/wifi_provider.dart';
 import 'package:smart_warmth_2025/core/services/locale_service.dart';
 import 'package:smart_warmth_2025/shared/widgets/overlay_alert.dart';
 
@@ -51,7 +50,7 @@ class MyApp extends ConsumerWidget {
     final locale = ref.watch(localeProvider);
 
     // Prefetch data
-    ref.read(roomsProvider.notifier).loadRooms();
+    ref.read(roomsProvider.notifier).refreshRooms();
     ref.read(devicesProvider.notifier).loadDevices();
 
     return MaterialApp.router(

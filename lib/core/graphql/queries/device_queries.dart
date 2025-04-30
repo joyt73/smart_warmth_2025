@@ -69,4 +69,38 @@ class DeviceQueries {
       }
     }
   ''';
+
+  // Correggi questa query con frammenti inline appropriati
+  static const String viewerWithDevices = '''
+  query ViewerWithDevices {
+    viewer {
+      id
+      thermostats {
+        edges {
+          node {
+            id
+            ... on OneThermostat {
+              name
+              online
+              mode
+              ambientTemperature
+              comfortTemperature
+              economyTemperature
+              boostTime
+              boostRemainingTime
+              currentSchedule
+              functions
+              holidayTime
+              holidayRemainingTime
+              timezone {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  ''';
 }

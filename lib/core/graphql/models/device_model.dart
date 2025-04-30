@@ -160,6 +160,68 @@ class Device {
           : Timezone(id: '0', name: 'UTC'),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'online': online,
+      'version': version,
+      'mode': mode,
+      'room': room?.toJson(),
+      'ambientTemperature': ambientTemperature,
+      'comfortTemperature': comfortTemperature,
+      'economyTemperature': economyTemperature,
+      'boostTime': boostTime,
+      'boostRemainingTime': boostRemainingTime,
+      'currentSchedule': currentSchedule,
+      'functions': functions,
+      'holidayTime': holidayTime,
+      'holidayRemainingTime': holidayRemainingTime,
+      'timezone': timezone,
+    };
+  }
+
+  // lib/core/graphql/models/device_model.dart
+// Aggiungi questo metodo alla classe Device
+
+  Device copyWith({
+    String? id,
+    String? name,
+    bool? online,
+    String? version,
+    DeviceMode? mode,
+    RoomModel? room,
+    double? ambientTemperature,
+    double? comfortTemperature,
+    double? economyTemperature,
+    int? boostTime,
+    int? boostRemainingTime,
+    int? currentSchedule,
+    List<DeviceFunction>? functions,
+    int? holidayTime,
+    int? holidayRemainingTime,
+    Timezone? timezone,
+  }) {
+    return Device(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      online: online ?? this.online,
+      version: version ?? this.version,
+      mode: mode ?? this.mode,
+      room: room ?? this.room,
+      ambientTemperature: ambientTemperature ?? this.ambientTemperature,
+      comfortTemperature: comfortTemperature ?? this.comfortTemperature,
+      economyTemperature: economyTemperature ?? this.economyTemperature,
+      boostTime: boostTime ?? this.boostTime,
+      boostRemainingTime: boostRemainingTime ?? this.boostRemainingTime,
+      currentSchedule: currentSchedule ?? this.currentSchedule,
+      functions: functions ?? this.functions,
+      holidayTime: holidayTime ?? this.holidayTime,
+      holidayRemainingTime: holidayRemainingTime ?? this.holidayRemainingTime,
+      timezone: timezone ?? this.timezone,
+    );
+  }
 }
 
 class Schedule {
