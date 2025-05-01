@@ -342,7 +342,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               setState(() {
                                 _showMenu = false;
                               });
-                              context.push('/contact');
+                              context.push('/authenticated-contact');
                             },
                             icon: Icons.mail,
                           ),

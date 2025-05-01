@@ -33,36 +33,52 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
   @override
   void initState() {
     super.initState();
-
+    print("_precompileData 00: ${AuthState.authenticated}");
     // Ritardiamo l'inizializzazione per assicurarci che il provider sia pronto
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _precompileData();
     });
   }
 
-
   void _precompileData() {
-    // Otteniamo lo stato dell'autenticazione
-    final authState = ref.read(authStateProvider);
+    try {
+      // Otteniamo lo stato dell'autenticazione
+      final authState = ref.read(authStateProvider);
 
-    // Se l'utente è autenticato, precompiliamo i dati
-    if (authState == AuthState.authenticated &&
-        authState.user != null) {
-      _senderController.text = authState.user!.displayName;
+      // Controlla se l'utente è autenticato
+      final isAuthenticated = authState.state == AuthState.authenticated ||
+          authState.state == AuthState.authenticated;
 
-      // Precompiliamo il campo messaggio con le informazioni dell'utente autenticato
-      _messageController.text = '''${_getTranslation('your_message')}:
+      if (isAuthenticated && authState.user != null) {
+        // Precompila i campi con i dati dell'utente
+        setState(() {
+          _senderController.text = authState.user!.displayName;
+          _messageController.text = '''${_getTranslation('your_message')}:
 
 User: ${authState.user!.displayName}
 Email: ${authState.user!.email}
 Platform:android''';
-    } else {
-      // Se l'utente non è autenticato, usiamo un messaggio generico
-      _messageController.text = '''${_getTranslation('your_message')}:
+        });
+      } else {
+        // Se non autenticato, usa template generico
+        setState(() {
+          _messageController.text = '''${_getTranslation('your_message')}:
 
 User:
 Email:
 Platform:android''';
+        });
+      }
+    } catch (e) {
+      print("Error in precompileData: $e");
+      // Fallback sicuro in caso di errore
+      setState(() {
+        _messageController.text = '''${_getTranslation('your_message')}:
+
+User:
+Email:
+Platform:android''';
+      });
     }
   }
   @override

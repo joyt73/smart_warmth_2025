@@ -42,6 +42,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         if (state.matchedLocation == '/home') return null;
         return '/home';
       }
+
       return null;
     },
     routes: [
@@ -63,6 +64,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/contact',
+        builder: (context, state) => const ContactScreen(),
+      ),
+      // Percorso autenticato per contatti (usato da homepage)
+      GoRoute(
+        path: '/authenticated-contact',
         builder: (context, state) => const ContactScreen(),
       ),
       GoRoute(
