@@ -89,23 +89,65 @@ Platform:android''';
     super.dispose();
   }
 
-  void _sendMessage_old() {
+  Future<void> _sendMessage() async {
     if (_formKey.currentState!.validate() && _selectedProblem != null) {
-      // Utilizziamo l'estensione per mostrare lo SnackBar di successo
-      context.showSuccessSnackBar(_getTranslation(TranslationKeys.messageSent));
+      // Prepara l'oggetto dell'email basato sul problema selezionato
+      final subject = _selectedProblem != null
+          ? _getTranslation(_selectedProblem!)
+          : _getTranslation('problem_generic');
 
-      // Reimpostare il form
-      _precompileData(); // Ripristiniamo i dati precompilati
-      setState(() {
-        _selectedProblem = null;
-      });
+      // Prepara il corpo dell'email e il mittente
+      final body = _messageController.text;
+      final sender = _senderController.text;
+
+      // Prepara l'indirizzo email destinatario
+      const email = 'joysolution19@gmail.com'; //'help@ridea.it';
+
+      // Crea l'URL mailto con tutte le informazioni
+      final Uri emailLaunchUri = Uri(
+        scheme: 'mailto',
+        path: email,
+        query: encodeQueryParameters({
+          'subject': subject,
+          'body': body,
+          'from': sender,  // Alcuni client email supportano questo campo
+        }),
+      );
+
+      try {
+        // Apri il client email
+        if (await canLaunchUrl(emailLaunchUri)) {
+          await launchUrl(emailLaunchUri);
+
+          // Mostra un feedback di successo
+          if (mounted) {
+            context.showSuccessSnackBar(_getTranslation(TranslationKeys.messageSent));
+
+            // Reimpostare il form alle condizioni iniziali
+            _precompileData(); // Ripristiniamo i dati precompilati
+            setState(() {
+              _selectedProblem = null;
+            });
+          }
+        } else {
+          // Fallback in caso di errore
+          if (mounted) {
+            context.showErrorSnackBar(_getTranslation('error_opening_email'));
+          }
+        }
+      } catch (e) {
+        print('Error launching email: $e');
+        if (mounted) {
+          context.showErrorSnackBar(_getTranslation('error_sending_message'));
+        }
+      }
     } else if (_selectedProblem == null) {
       // Utilizziamo l'estensione per mostrare lo SnackBar di errore
       context.showErrorSnackBar(_getTranslation(TranslationKeys.selectProblem));
     }
   }
 
-  Future<void> _sendMessage() async {
+  Future<void> _sendMessage_2() async {
     if (_formKey.currentState!.validate() && _selectedProblem != null) {
       // Prepara l'oggetto dell'email basato sul problema selezionato
       final subject = _selectedProblem != null
@@ -116,7 +158,7 @@ Platform:android''';
       final body = _messageController.text;
 
       // Prepara l'indirizzo email destinatario
-      const email = 'help@ridea.it';
+      const email = 'joysolution19@gmail.com'; //'help@ridea.it';
 
       // Crea l'URL mailto
       final Uri emailLaunchUri = Uri(
@@ -155,7 +197,6 @@ Platform:android''';
     }
   }
 
-// Funzione di supporto per codificare i parametri dell'URL
   String? encodeQueryParameters(Map<String, String> params) {
     return params.entries
         .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
