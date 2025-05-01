@@ -6,6 +6,7 @@ import 'package:smart_warmth_2025/core/i18n/translation_keys.dart';
 import 'package:smart_warmth_2025/core/providers/auth_provider.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_scaffold.dart';
 import 'package:smart_warmth_2025/shared/widgets/snack_bar_extension.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ContactScreen extends ConsumerStatefulWidget {
   const ContactScreen({Key? key}) : super(key: key);
@@ -88,7 +89,7 @@ Platform:android''';
     super.dispose();
   }
 
-  void _sendMessage() {
+  void _sendMessage_old() {
     if (_formKey.currentState!.validate() && _selectedProblem != null) {
       // Utilizziamo l'estensione per mostrare lo SnackBar di successo
       context.showSuccessSnackBar(_getTranslation(TranslationKeys.messageSent));
@@ -102,6 +103,63 @@ Platform:android''';
       // Utilizziamo l'estensione per mostrare lo SnackBar di errore
       context.showErrorSnackBar(_getTranslation(TranslationKeys.selectProblem));
     }
+  }
+
+  Future<void> _sendMessage() async {
+    if (_formKey.currentState!.validate() && _selectedProblem != null) {
+      // Prepara l'oggetto dell'email basato sul problema selezionato
+      final subject = _selectedProblem != null
+          ? _getTranslation(_selectedProblem!)
+          : _getTranslation('problem_generic');
+
+      // Prepara il corpo dell'email
+      final body = _messageController.text;
+
+      // Prepara l'indirizzo email destinatario
+      const email = 'help@ridea.it';
+
+      // Crea l'URL mailto
+      final Uri emailLaunchUri = Uri(
+        scheme: 'mailto',
+        path: email,
+        query: encodeQueryParameters({
+          'subject': subject,
+          'body': body,
+        }),
+      );
+
+      try {
+        // Apri il client email
+        if (await canLaunchUrl(emailLaunchUri)) {
+          await launchUrl(emailLaunchUri);
+
+          // Mostra un feedback di successo
+          if (mounted) {
+            context.showSuccessSnackBar(_getTranslation(TranslationKeys.messageSent));
+          }
+        } else {
+          // Fallback in caso di errore
+          if (mounted) {
+            context.showErrorSnackBar(_getTranslation('error_opening_email'));
+          }
+        }
+      } catch (e) {
+        print('Error launching email: $e');
+        if (mounted) {
+          context.showErrorSnackBar(_getTranslation('error_sending_message'));
+        }
+      }
+    } else if (_selectedProblem == null) {
+      // Utilizziamo l'estensione per mostrare lo SnackBar di errore
+      context.showErrorSnackBar(_getTranslation(TranslationKeys.selectProblem));
+    }
+  }
+
+// Funzione di supporto per codificare i parametri dell'URL
+  String? encodeQueryParameters(Map<String, String> params) {
+    return params.entries
+        .map((e) => '${Uri.encodeComponent(e.key)}=${Uri.encodeComponent(e.value)}')
+        .join('&');
   }
 
   String _getTranslation(String key) {

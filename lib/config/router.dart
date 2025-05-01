@@ -66,7 +66,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/contact',
         builder: (context, state) => const ContactScreen(),
       ),
-      // Percorso autenticato per contatti (usato da homepage)
       GoRoute(
         path: '/authenticated-contact',
         builder: (context, state) => const ContactScreen(),

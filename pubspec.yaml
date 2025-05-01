@@ -41,7 +41,8 @@ dependencies:
   intl: ^0.19.0
   logger: ^2.0.2+1
   email_validator: ^3.0.0
-
+  url_launcher: ^6.1.10
+  
   # BlueTooth\Wifi
   flutter_reactive_ble: ^5.2.0
 
