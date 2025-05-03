@@ -150,6 +150,16 @@ class TranslationKeys {
   static const String permissionsChecked = 'permissionsChecked';
   static const String requestAllPermissions = 'requestAllPermissions';
   static const String touchPermissionToResolve = 'touchPermissionToResolve';
+  static const String tapToEnable = 'tap_to_enable';
+  static const String permissionRequired = 'permission_required';
+  static const String permissionRequiredDescription = 'permission_required_description';
+  static const String cameraPermissionDescription = 'camera_permission_description';
+  static const String locationPermissionDescription = 'location_permission_description';
+  static const String bluetoothScanPermissionDescription = 'bluetooth_scan_permission_description';
+  static const String bluetoothConnectPermissionDescription = 'bluetooth_connect_permission_description';
+  static const String openSettings = 'open_settings';
+  static const String allPermissionsGranted = 'all_permissions_granted';
+  static const String somePermissionsDenied = 'some_permissions_denied';
 
   // Common
   static const String save = 'save';

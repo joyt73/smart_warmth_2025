@@ -45,7 +45,7 @@ class _AddDeviceToRoomScreenState extends ConsumerState<AddDeviceToRoomScreen> {
         title: _getTranslation('add_device_to_room'),
         useDarkBackground: true,
         body: Padding(
-          padding: const EdgeInsets.all(24.0),
+          padding: const EdgeInsets.only(left: 24.0, right: 24.0, bottom: 24.0, top: 104),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [

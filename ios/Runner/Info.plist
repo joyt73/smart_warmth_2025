@@ -59,5 +59,7 @@
         <string>Questa app ha bisogno della tua posizione per scansionare le reti WiFi</string>
         <key>NSLocalNetworkUsageDescription</key>
         <string>Questa app ha bisogno di accedere alla rete locale per connettersi al WiFi</string>
+        <key>NSCameraUsageDescription</key>
+        <string>L'app richiede l'accesso alla fotocamera per scansionare i codici QR dei dispositivi.</string>
 	</dict>
 </plist>

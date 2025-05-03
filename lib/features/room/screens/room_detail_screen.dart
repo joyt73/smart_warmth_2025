@@ -47,7 +47,8 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     });
 
     try {
-      final room = await ref.read(roomsProvider.notifier).findRoomById(widget.roomId);
+      final room =
+          await ref.read(roomsProvider.notifier).findRoomById(widget.roomId);
       if (mounted) {
         setState(() {
           _room = room;
@@ -57,9 +58,9 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
     } catch (e) {
       if (mounted) {
         ref.read(overlayAlertProvider.notifier).show(
-          message: 'Errore nel caricamento della stanza: ${e.toString()}',
-          type: OverlayAlertType.error,
-        );
+              message: 'Errore nel caricamento della stanza: ${e.toString()}',
+              type: OverlayAlertType.error,
+            );
       }
     } finally {
       if (mounted) {
@@ -73,9 +74,9 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
   Future<void> _saveRoom() async {
     if (_nameController.text.isEmpty) {
       ref.read(overlayAlertProvider.notifier).show(
-        message: _getTranslation(TranslationKeys.nameRequired),
-        type: OverlayAlertType.warning,
-      );
+            message: _getTranslation(TranslationKeys.nameRequired),
+            type: OverlayAlertType.warning,
+          );
       return;
     }
 
@@ -89,32 +90,33 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
         final updatedRoom = _room!.copyWith(name: _nameController.text);
 
         // Chiamiamo il metodo corretto con il parametro giusto
-        final success = await ref.read(roomsProvider.notifier).updateRoomName(updatedRoom);
+        final success =
+            await ref.read(roomsProvider.notifier).updateRoomName(updatedRoom);
 
         if (mounted) {
           if (success) {
             ref.read(overlayAlertProvider.notifier).show(
-              message: _getTranslation(TranslationKeys.roomUpdated),
-              type: OverlayAlertType.success,
-            );
+                  message: _getTranslation(TranslationKeys.roomUpdated),
+                  type: OverlayAlertType.success,
+                );
             setState(() {
               _room = updatedRoom; // Aggiorniamo anche lo stato locale
               _isEditing = false;
             });
           } else {
             ref.read(overlayAlertProvider.notifier).show(
-              message: _getTranslation(TranslationKeys.errorUpdatingRoom),
-              type: OverlayAlertType.error,
-            );
+                  message: _getTranslation(TranslationKeys.errorUpdatingRoom),
+                  type: OverlayAlertType.error,
+                );
           }
         }
       }
     } catch (e) {
       if (mounted) {
         ref.read(overlayAlertProvider.notifier).show(
-          message: 'Errore nel salvataggio della stanza: ${e.toString()}',
-          type: OverlayAlertType.error,
-        );
+              message: 'Errore nel salvataggio della stanza: ${e.toString()}',
+              type: OverlayAlertType.error,
+            );
       }
     } finally {
       if (mounted) {
@@ -179,9 +181,9 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
 
         if (mounted) {
           ref.read(overlayAlertProvider.notifier).show(
-            message: _getTranslation(TranslationKeys.roomDeleted),
-            type: OverlayAlertType.success,
-          );
+                message: _getTranslation(TranslationKeys.roomDeleted),
+                type: OverlayAlertType.success,
+              );
           context.go('/home');
         }
       }
@@ -191,9 +193,10 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
           _isLoading = false;
         });
         ref.read(overlayAlertProvider.notifier).show(
-          message: 'Errore nell\'eliminazione della stanza: ${e.toString()}',
-          type: OverlayAlertType.error,
-        );
+              message:
+                  'Errore nell\'eliminazione della stanza: ${e.toString()}',
+              type: OverlayAlertType.error,
+            );
       }
     }
   }
@@ -208,29 +211,32 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
 
     try {
       // Qui usiamo il metodo corretto dal provider
-      final success = await ref.read(roomsProvider.notifier).controlAllDevicesInRoom(_room!.id, turnOn);
+      final success = await ref
+          .read(roomsProvider.notifier)
+          .controlAllDevicesInRoom(_room!.id, turnOn);
 
       if (mounted) {
         if (success) {
           ref.read(overlayAlertProvider.notifier).show(
-            message: turnOn
-                ? _getTranslation(TranslationKeys.devicesOn)
-                : _getTranslation(TranslationKeys.devicesOff),
-            type: OverlayAlertType.success,
-          );
+                message: turnOn
+                    ? _getTranslation(TranslationKeys.devicesOn)
+                    : _getTranslation(TranslationKeys.devicesOff),
+                type: OverlayAlertType.success,
+              );
         } else {
           ref.read(overlayAlertProvider.notifier).show(
-            message: _getTranslation(TranslationKeys.errorControllingDevices),
-            type: OverlayAlertType.error,
-          );
+                message:
+                    _getTranslation(TranslationKeys.errorControllingDevices),
+                type: OverlayAlertType.error,
+              );
         }
       }
     } catch (e) {
       if (mounted) {
         ref.read(overlayAlertProvider.notifier).show(
-          message: 'Errore nel controllo dei dispositivi: ${e.toString()}',
-          type: OverlayAlertType.error,
-        );
+              message: 'Errore nel controllo dei dispositivi: ${e.toString()}',
+              type: OverlayAlertType.error,
+            );
       }
     } finally {
       if (mounted) {
@@ -262,280 +268,324 @@ class _RoomDetailScreenState extends ConsumerState<RoomDetailScreen> {
         ),
       ],
       body: OverlayAlertWrapper(
-        child: Stack(
-          children: [
-            _isLoading
-                ? const Center(
-              child: CircularProgressIndicator(color: Colors.white),
-            )
-                : _room == null
-                ? Center(
-              child: Text(
-                _getTranslation(TranslationKeys.roomNotFound),
-                style: const TextStyle(color: Colors.white),
-              ),
-            )
-                : Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _getTranslation(TranslationKeys.name),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  _isEditing
-                      ? AppTextField(
-                    controller: _nameController,
-                    hintText: _getTranslation(TranslationKeys.enterRoomName),
-                  )
-                      : Container(
-                    width: double.infinity,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: const Color(0xFF95A3A4),
-                        width: 1.0,
-                      ),
-                    ),
-                    child: Text(
-                      _room!.name,
-                      style: const TextStyle(
-                        color: Colors.black,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      _isEditing
-                          ? Expanded(
-                        child: AppButton(
-                          text: _getTranslation(TranslationKeys.save),
-                          style: AppButtonStyle.reversed,
-                          height: 40,
-                          onPressed: _saveRoom,
-                        ),
+        child: Padding(
+            padding: EdgeInsets.only(left: 24, right: 24, bottom: 24, top: 104),
+            child: Stack(
+              children: [
+                _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: Colors.white),
                       )
-                          : Expanded(
-                        child: AppButton(
-                          text: _getTranslation(TranslationKeys.edit),
-                          style: AppButtonStyle.secondary,
-                          height: 40,
-                          onPressed: () {
-                            setState(() {
-                              _isEditing = true;
-                            });
-                          },
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 32),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        _getTranslation(TranslationKeys.devices),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.edit,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          context.push('/room/${_room!.id}/add-device');
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Expanded(
-                    child: _room!.thermostats.isEmpty
+                    : _room == null
                         ? Center(
-                      child: Text(
-                        _getTranslation(TranslationKeys.noDevices),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                        ),
-                      ),
-                    )
-                        : ListView.builder(
-                      itemCount: _room!.thermostats.length,
-                      itemBuilder: (context, index) {
-                        final device = _room!.thermostats[index];
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          color: const Color(0xFF2A2A2A),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                            side: BorderSide(
-                              color: device.online ? Colors.white : Colors.grey,
-                              width: 2.0,
+                            child: Text(
+                              _getTranslation(TranslationKeys.roomNotFound),
+                              style: const TextStyle(color: Colors.white),
                             ),
-                          ),
-                          child: InkWell(
-                            onTap: () {
-                              context.push('/device/${device.id}');
-                            },
-                            child: Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        device.name,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      Icon(
-                                        device.online
-                                            ? Icons.wifi
-                                            : Icons.wifi_off,
-                                        color: device.online
-                                            ? Colors.white
-                                            : Colors.grey,
-                                      ),
-                                    ],
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.all(16.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _getTranslation(TranslationKeys.name),
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        '${_getTranslation(TranslationKeys.mode)}: ${_getDeviceModeName(device.mode)}',
-                                        style: const TextStyle(
+                                ),
+                                const SizedBox(height: 8),
+                                _isEditing
+                                    ? AppTextField(
+                                        controller: _nameController,
+                                        hintText: _getTranslation(
+                                            TranslationKeys.enterRoomName),
+                                      )
+                                    : Container(
+                                        width: double.infinity,
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
                                           color: Colors.white,
-                                          fontSize: 14,
+                                          borderRadius:
+                                              BorderRadius.circular(8),
+                                          border: Border.all(
+                                            color: const Color(0xFF95A3A4),
+                                            width: 1.0,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          _room!.name,
+                                          style: const TextStyle(
+                                            color: Colors.black,
+                                            fontSize: 16,
+                                          ),
                                         ),
                                       ),
-                                      Row(
-                                        children: [
-                                          Text(
-                                            '${device.ambientTemperature.toStringAsFixed(1)}°C',
-                                            style: const TextStyle(
-                                              color: Colors.white,
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    _isEditing
+                                        ? Expanded(
+                                            child: AppButton(
+                                              text: _getTranslation(
+                                                  TranslationKeys.save),
+                                              style: AppButtonStyle.reversed,
+                                              height: 40,
+                                              onPressed: _saveRoom,
+                                            ),
+                                          )
+                                        : Expanded(
+                                            child: AppButton(
+                                              text: _getTranslation(
+                                                  TranslationKeys.edit),
+                                              style: AppButtonStyle.secondary,
+                                              height: 40,
+                                              onPressed: () {
+                                                setState(() {
+                                                  _isEditing = true;
+                                                });
+                                              },
                                             ),
                                           ),
-                                          const SizedBox(width: 4),
-                                          const Icon(
-                                            Icons.thermostat,
-                                            color: Colors.white,
-                                            size: 20,
-                                          ),
-                                        ],
+                                  ],
+                                ),
+                                const SizedBox(height: 32),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      _getTranslation(TranslationKeys.devices),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 16),
-                                  Row(
-                                    children: [
-                                      Expanded(
-                                        child: AppButton(
-                                          text: _getTranslation(TranslationKeys.open),
-                                          style: AppButtonStyle.primary,
-                                          height: 40,
-                                          onPressed: () {
-                                            context.push('/device/${device.id}');
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        color: Colors.white,
+                                      ),
+                                      onPressed: () {
+                                        context.push(
+                                            '/room/${_room!.id}/add-device');
+                                      },
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                Expanded(
+                                  child: _room!.thermostats.isEmpty
+                                      ? Center(
+                                          child: Text(
+                                            _getTranslation(
+                                                TranslationKeys.noDevices),
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                        )
+                                      : ListView.builder(
+                                          itemCount: _room!.thermostats.length,
+                                          itemBuilder: (context, index) {
+                                            final device =
+                                                _room!.thermostats[index];
+                                            return Card(
+                                              margin: const EdgeInsets.only(
+                                                  bottom: 16),
+                                              color: const Color(0xFF2A2A2A),
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                                side: BorderSide(
+                                                  color: device.online
+                                                      ? Colors.white
+                                                      : Colors.grey,
+                                                  width: 2.0,
+                                                ),
+                                              ),
+                                              child: InkWell(
+                                                onTap: () {
+                                                  context.push(
+                                                      '/device/${device.id}');
+                                                },
+                                                child: Padding(
+                                                  padding: const EdgeInsets.all(
+                                                      16.0),
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
+                                                    children: [
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                            device.name,
+                                                            style:
+                                                                const TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 18,
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                            ),
+                                                          ),
+                                                          Icon(
+                                                            device.online
+                                                                ? Icons.wifi
+                                                                : Icons
+                                                                    .wifi_off,
+                                                            color: device.online
+                                                                ? Colors.white
+                                                                : Colors.grey,
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(height: 8),
+                                                      Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceBetween,
+                                                        children: [
+                                                          Text(
+                                                            '${_getTranslation(TranslationKeys.mode)}: ${_getDeviceModeName(device.mode)}',
+                                                            style:
+                                                                const TextStyle(
+                                                              color:
+                                                                  Colors.white,
+                                                              fontSize: 14,
+                                                            ),
+                                                          ),
+                                                          Row(
+                                                            children: [
+                                                              Text(
+                                                                '${device.ambientTemperature.toStringAsFixed(1)}°C',
+                                                                style:
+                                                                    const TextStyle(
+                                                                  color: Colors
+                                                                      .white,
+                                                                  fontSize: 18,
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .bold,
+                                                                ),
+                                                              ),
+                                                              const SizedBox(
+                                                                  width: 4),
+                                                              const Icon(
+                                                                Icons
+                                                                    .thermostat,
+                                                                color: Colors
+                                                                    .white,
+                                                                size: 20,
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ],
+                                                      ),
+                                                      const SizedBox(
+                                                          height: 16),
+                                                      Row(
+                                                        children: [
+                                                          Expanded(
+                                                            child: AppButton(
+                                                              text: _getTranslation(
+                                                                  TranslationKeys
+                                                                      .open),
+                                                              style:
+                                                                  AppButtonStyle
+                                                                      .primary,
+                                                              height: 40,
+                                                              onPressed: () {
+                                                                context.push(
+                                                                    '/device/${device.id}');
+                                                              },
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            );
                                           },
                                         ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
+                                ),
+                              ],
                             ),
                           ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            // Menu a tendina con opzioni
-            if (_showOptionsMenu && _room != null)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: SafeArea(
-                  child: Card(
-                    margin: const EdgeInsets.only(top: 8, right: 16),
-                    color: const Color(0xFF333232),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    elevation: 8,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 12, horizontal: 8),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          _buildMenuItem(
-                            text: _getTranslation(TranslationKeys.save),
-                            backgroundColor: const Color(0xFF04555C),
-                            onTap: () {
-                              setState(() {
-                                _showOptionsMenu = false;
-                              });
-                              _saveRoom();
-                            },
-                            icon: Icons.save,
+                // Menu a tendina con opzioni
+                if (_showOptionsMenu && _room != null)
+                  Positioned(
+                    top: 0,
+                    right: 0,
+                    child: SafeArea(
+                      child: Card(
+                        margin: const EdgeInsets.only(top: 8, right: 16),
+                        color: const Color(0xFF333232),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        elevation: 8,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 8),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _buildMenuItem(
+                                text: _getTranslation(TranslationKeys.save),
+                                backgroundColor: const Color(0xFF04555C),
+                                onTap: () {
+                                  setState(() {
+                                    _showOptionsMenu = false;
+                                  });
+                                  _saveRoom();
+                                },
+                                icon: Icons.save,
+                              ),
+                              _buildMenuItem(
+                                text:
+                                    _getTranslation(TranslationKeys.turnAllOn),
+                                backgroundColor: Colors.green.shade700,
+                                onTap: () => _powerAllDevices(true),
+                                icon: Icons.power_settings_new,
+                              ),
+                              _buildMenuItem(
+                                text:
+                                    _getTranslation(TranslationKeys.turnAllOff),
+                                backgroundColor: Colors.red.shade700,
+                                onTap: () => _powerAllDevices(false),
+                                icon: Icons.power_settings_new,
+                              ),
+                              _buildMenuItem(
+                                text: _getTranslation(TranslationKeys.delete),
+                                backgroundColor: Colors.red.shade700,
+                                onTap: () {
+                                  setState(() {
+                                    _showOptionsMenu = false;
+                                  });
+                                  _deleteRoom();
+                                },
+                                icon: Icons.delete,
+                              ),
+                            ],
                           ),
-                          _buildMenuItem(
-                            text: _getTranslation(TranslationKeys.turnAllOn),
-                            backgroundColor: Colors.green.shade700,
-                            onTap: () => _powerAllDevices(true),
-                            icon: Icons.power_settings_new,
-                          ),
-                          _buildMenuItem(
-                            text: _getTranslation(TranslationKeys.turnAllOff),
-                            backgroundColor: Colors.red.shade700,
-                            onTap: () => _powerAllDevices(false),
-                            icon: Icons.power_settings_new,
-                          ),
-                          _buildMenuItem(
-                            text: _getTranslation(TranslationKeys.delete),
-                            backgroundColor: Colors.red.shade700,
-                            onTap: () {
-                              setState(() {
-                                _showOptionsMenu = false;
-                              });
-                              _deleteRoom();
-                            },
-                            icon: Icons.delete,
-                          ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
-                ),
-              ),
-          ],
-        ),
+              ],
+            )),
       ),
     );
   }
