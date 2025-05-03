@@ -159,6 +159,9 @@ class Translations {
       "logout_confirmation": "Are you sure you want to logout?",
       "deleteAccount": "Delete account",
       "deleteAccountConfirmation": "Are you sure you want to delete your account? This action is irreversible.",
+      'creation': 'Creation',
+      'bluetooth': 'Bluetooth',
+      'wifi': 'WiFi',
 
       "setupWifi": "Setup WiFi",
       "networkName": "Network name",
@@ -392,6 +395,9 @@ class Translations {
       'logout_confirmation': 'Sei sicuro di voler uscire?',
       'deleteAccount': 'Elimina account',
       'deleteAccountConfirmation': 'Sei sicuro di voler eliminare il tuo account? Questa azione è irreversibile.',
+      'creation': 'Creazione',
+      'bluetooth': 'Bluetooth',
+      'wifi': 'WiFi',
 
       // WiFi
       'setupWifi': 'Imposta rete WiFi',
@@ -623,6 +629,9 @@ class Translations {
       "logout_confirmation": "Êtes-vous sûr de vouloir vous déconnecter ?",
       "deleteAccount": "Supprimer le compte",
       "deleteAccountConfirmation": "Êtes-vous sûr de vouloir supprimer votre compte ? Cette action est irréversible.",
+      "creation": "Création",
+      "bluetooth": "Bluetooth",
+      "wifi": "Wi-Fi",
 
       "setupWifi": "Configurer WiFi",
       "networkName": "Nom du réseau",
@@ -847,6 +856,9 @@ class Translations {
       "logout_confirmation": "¿Estás seguro de que deseas cerrar sesión?",
       "deleteAccount": "Eliminar cuenta",
       "deleteAccountConfirmation": "¿Estás seguro de que deseas eliminar tu cuenta? Esta acción es irreversible.",
+      "creation": "Creación",
+      "bluetooth": "Bluetooth",
+      "wifi": "Wi-Fi",
 
       "setupWifi": "Configurar WiFi",
       "networkName": "Nombre de red",

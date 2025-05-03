@@ -122,6 +122,11 @@ class TranslationKeys {
   static const String permissions = 'permissions';
   static const String deleteAccount = 'deleteAccount';
   static const String deleteAccountConfirmation = 'deleteAccountConfirmation';
+  static const String creation = 'creation';
+  static const String bluetooth = 'bluetooth';
+  static const String wifi = 'wifi';
+  static const String newRoom = 'new_room';
+  static const String wifiSetup = 'wifi_setup';
 
   // WiFi
   static const String networkName = 'networkName';

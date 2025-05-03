@@ -205,7 +205,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             onRefresh: _fetchRooms,
                             color: Colors.white,
                             backgroundColor: const Color(0xFF04555C),
-                            child: ListView.builder(
+                            child:
+                            ListView.builder(
                               physics: const AlwaysScrollableScrollPhysics(),
                               itemCount: rooms.length,
                               itemBuilder: (context, index) {
@@ -346,7 +347,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               setState(() {
                                 _showMenu = false;
                               });
-                              _addRoom();
+                              context.push('/creation');
+                              //_addRoom();
                             },
                             icon: Icons.add,
                           ),

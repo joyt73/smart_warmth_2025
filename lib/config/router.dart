@@ -7,6 +7,7 @@ import 'package:smart_warmth_2025/features/auth/screens/contact_screen.dart';
 import 'package:smart_warmth_2025/features/auth/screens/forgot_password_screen.dart';
 import 'package:smart_warmth_2025/features/auth/screens/login_screen.dart';
 import 'package:smart_warmth_2025/features/auth/screens/register_screen.dart';
+import 'package:smart_warmth_2025/features/creation/screens/creation_screen.dart';
 import 'package:smart_warmth_2025/features/device/screens/bluetooth_device_screen.dart';
 import 'package:smart_warmth_2025/features/device/screens/bluetooth_scan_screen.dart';
 import 'package:smart_warmth_2025/features/device/screens/bluetooth_settings_screen.dart';
@@ -75,6 +76,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/home',
         builder: (context, state) => const HomeScreen(),
+      ),
+      GoRoute(
+        path: '/creation',
+        builder: (context, state) => const CreationScreen(),
       ),
       GoRoute(
         path: '/add-room',
