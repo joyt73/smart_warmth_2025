@@ -4,7 +4,7 @@ import 'package:smart_warmth_2025/core/graphql/client.dart';
 import 'package:smart_warmth_2025/core/graphql/errors/error_handler.dart';
 import 'package:smart_warmth_2025/core/graphql/mutations/room_mutations.dart';
 import 'package:smart_warmth_2025/core/graphql/queries/room_queries.dart';
-import 'package:smart_warmth_2025/features/room/models/room_model.dart';
+import 'package:smart_warmth_2025/core/graphql/models/room_model.dart';
 
 class RoomService {
   final GraphQLClientService _clientService = GraphQLClientService.instance;
@@ -70,6 +70,35 @@ class RoomService {
       return newRoom;
     } catch (e) {
       throw Exception('Errore durante la creazione della stanza: ${e.toString()}');
+    }
+  }
+
+  // Aggiungere questo metodo nel file room_service.dart
+  Future<bool> updateRoomName(String roomId, String name) async {
+    try {
+      final result = await _clientService.client.mutate(
+        MutationOptions(
+          document: gql(RoomMutations.editRoom),
+          variables: {
+            'input': {
+              'id': roomId,
+              'name': name,
+            },
+          },
+        ),
+      );
+
+      if (result.hasException) {
+        final error = ErrorHandlerNew.getMessageFromGraphQLError(
+          result.exception?.graphqlErrors,
+        );
+        throw Exception(error);
+      }
+
+      final success = result.data?['editRoom']['success'] as bool? ?? false;
+      return success;
+    } catch (e) {
+      throw Exception('Errore durante l\'aggiornamento del nome della stanza: ${e.toString()}');
     }
   }
 

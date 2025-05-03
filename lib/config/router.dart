@@ -17,6 +17,8 @@ import 'package:smart_warmth_2025/features/home/screens/home_screen.dart';
 import 'package:smart_warmth_2025/features/room/screens/add_device_to_room_screen.dart';
 import 'package:smart_warmth_2025/features/room/screens/add_room_screen.dart';
 import 'package:smart_warmth_2025/features/room/screens/room_detail_screen.dart';
+import 'package:smart_warmth_2025/features/settings/screens/permissions_screen.dart';
+import 'package:smart_warmth_2025/features/settings/screens/settings_screen.dart';
 import 'package:smart_warmth_2025/features/settings/screens/wifi_setup_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -118,21 +120,22 @@ final routerProvider = Provider<GoRouter>((ref) {
           deviceId: state.pathParameters['id']!,
         ),
       ),
-/*
+
       GoRoute(
         path: '/settings',
         builder: (context, state) => const SettingsScreen(),
       ),
-*/
+
       GoRoute(
         path: '/settings/wifi',
         builder: (context, state) => const WifiSetupScreen(),
       ),
-/*
+
       GoRoute(
         path: '/settings/permissions',
         builder: (context, state) => const PermissionsScreen(),
       ),
+      /*
       GoRoute(
         path: '/settings/third-party',
         builder: (context, state) => const ThirdPartyScreen(),

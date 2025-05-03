@@ -55,5 +55,9 @@
         <array>
           <string>mailto</string>
         </array>
+        <key>NSLocationWhenInUseUsageDescription</key>
+        <string>Questa app ha bisogno della tua posizione per scansionare le reti WiFi</string>
+        <key>NSLocalNetworkUsageDescription</key>
+        <string>Questa app ha bisogno di accedere alla rete locale per connettersi al WiFi</string>
 	</dict>
 </plist>

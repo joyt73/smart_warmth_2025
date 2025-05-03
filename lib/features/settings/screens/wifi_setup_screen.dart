@@ -1,10 +1,11 @@
-// lib/features/settings/screens/wifi_setup_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_warmth_2025/config/themes.dart';
 import 'package:smart_warmth_2025/core/i18n/app_localizations.dart';
-import 'package:smart_warmth_2025/features/settings/providers/wifi_provider.dart';
+import 'package:smart_warmth_2025/core/i18n/translation_keys.dart';
+import 'package:smart_warmth_2025/core/providers/wifi_provider.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_button.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_scaffold.dart';
+import 'package:smart_warmth_2025/shared/widgets/app_text_field.dart';
 import 'package:smart_warmth_2025/shared/widgets/overlay_alert.dart';
 
 class WifiSetupScreen extends ConsumerStatefulWidget {
@@ -15,17 +16,20 @@ class WifiSetupScreen extends ConsumerStatefulWidget {
 }
 
 class _WifiSetupScreenState extends ConsumerState<WifiSetupScreen> {
-  final _ssidController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _ssidController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _passwordVisible = false;
-  String? _currentWifi;
+  bool _showPassword = false;
+  bool _isScanning = false;
+  List<String> _foundNetworks = [];
 
   @override
   void initState() {
     super.initState();
-    _loadCurrentWifi();
+    Future.microtask(() {
+      _loadSavedNetwork();
+      _scanWifiNetworks();
+    });
   }
 
   @override
@@ -35,27 +39,77 @@ class _WifiSetupScreenState extends ConsumerState<WifiSetupScreen> {
     super.dispose();
   }
 
-  Future<void> _loadCurrentWifi() async {
+  Future<void> _loadSavedNetwork() async {
+    final wifiState = ref.read(wifiProvider);
+    if (wifiState.savedSSID.isNotEmpty) {
+      setState(() {
+        _ssidController.text = wifiState.savedSSID;
+        _passwordController.text = wifiState.savedPassword;
+      });
+    }
+  }
+
+  Future<void> _scanWifiNetworks() async {
+    if (_isScanning) return;
+
+    setState(() {
+      _isScanning = true;
+      _foundNetworks = [];
+    });
+
+    try {
+      final networks = await ref.read(wifiProvider.notifier).scanNetworks();
+      if (mounted) {
+        setState(() {
+          _foundNetworks = networks;
+          _isScanning = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+        ref.read(overlayAlertProvider.notifier).show(
+              message: 'Errore nella scansione WiFi: ${e.toString()}',
+              type: OverlayAlertType.error,
+            );
+      }
+    }
+  }
+
+  Future<void> _saveNetwork() async {
+    if (_ssidController.text.isEmpty) {
+      ref.read(overlayAlertProvider.notifier).show(
+            message: _getTranslation(TranslationKeys.ssidRequired),
+            type: OverlayAlertType.warning,
+          );
+      return;
+    }
+
     setState(() {
       _isLoading = true;
     });
 
     try {
-      // In un'app reale, recupereremmo queste informazioni da un provider
-      final currentWifi = await ref.read(wifiServiceProvider).getCurrentWifi();
-      final savedNetworks = await ref.read(wifiServiceProvider).getSavedNetworks();
+      await ref.read(wifiProvider.notifier).saveNetwork(
+            _ssidController.text,
+            _passwordController.text,
+          );
 
-      if (currentWifi != null) {
-        _currentWifi = currentWifi;
-      }
-
-      if (savedNetworks.isNotEmpty) {
-        final network = savedNetworks.first;
-        _ssidController.text = network.ssid;
-        _passwordController.text = network.password;
+      if (mounted) {
+        ref.read(overlayAlertProvider.notifier).show(
+              message: _getTranslation(TranslationKeys.wifiSaved),
+              type: OverlayAlertType.success,
+            );
       }
     } catch (e) {
-      // Gestione errori
+      if (mounted) {
+        ref.read(overlayAlertProvider.notifier).show(
+              message: 'Errore nel salvataggio della rete: ${e.toString()}',
+              type: OverlayAlertType.error,
+            );
+      }
     } finally {
       if (mounted) {
         setState(() {
@@ -65,189 +119,230 @@ class _WifiSetupScreenState extends ConsumerState<WifiSetupScreen> {
     }
   }
 
-  Future<void> _saveNetwork() async {
-    if (_formKey.currentState?.validate() ?? false) {
-      setState(() {
-        _isLoading = true;
-      });
-
-      try {
-        await ref.read(wifiServiceProvider).saveNetwork(
-          _ssidController.text,
-          _passwordController.text,
-        );
-
-        if (mounted) {
-          ref.read(overlayAlertProvider.notifier).show(
-            message: AppLocalizations.of(context).translate('wifi_saved'),
-            type: OverlayAlertType.success,
+  Future<void> _connectToNetwork() async {
+    if (_ssidController.text.isEmpty) {
+      ref.read(overlayAlertProvider.notifier).show(
+            message: _getTranslation(TranslationKeys.ssidRequired),
+            type: OverlayAlertType.warning,
           );
-        }
-      } catch (e) {
-        if (mounted) {
-          ref.read(overlayAlertProvider.notifier).show(
-            message: AppLocalizations.of(context).translate('wifi_save_error'),
-            type: OverlayAlertType.error,
+      return;
+    }
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final result = await ref.read(wifiProvider.notifier).connectToNetwork(
+            _ssidController.text,
+            _passwordController.text,
           );
-        }
-      } finally {
-        if (mounted) {
-          setState(() {
-            _isLoading = false;
-          });
+
+      if (mounted) {
+        if (result) {
+          ref.read(overlayAlertProvider.notifier).show(
+                message: _getTranslation(TranslationKeys.wifiConnected),
+                type: OverlayAlertType.success,
+              );
+        } else {
+          ref.read(overlayAlertProvider.notifier).show(
+                message: _getTranslation(TranslationKeys.wifiConnectFailed),
+                type: OverlayAlertType.error,
+              );
         }
       }
+    } catch (e) {
+      if (mounted) {
+        ref.read(overlayAlertProvider.notifier).show(
+              message: 'Errore nella connessione alla rete: ${e.toString()}',
+              type: OverlayAlertType.error,
+            );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
+  }
+
+  String _getTranslation(String key) {
+    return AppLocalizations.of(context).translate(key);
   }
 
   @override
   Widget build(BuildContext context) {
     return AppScaffold(
-      title: AppLocalizations.of(context).translate('wifi_settings'),
+      title: _getTranslation(TranslationKeys.setupWifi),
+      showBackButton: true,
       useDarkBackground: true,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (_currentWifi != null) ...[
-                  Text(
-                    AppLocalizations.of(context).translate('current_wifi'),
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[800],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        const Icon(
-                          Icons.wifi,
-                          color: Colors.white,
-                          size: 24,
-                        ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Text(
-                            _currentWifi!,
+      body: OverlayAlertWrapper(
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Padding(
+                    padding: EdgeInsets.only(top: 80),
+                    child: SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            _getTranslation(TranslationKeys.networkName),
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
+                              fontWeight: FontWeight.w500,
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                ],
-                Text(
-                  AppLocalizations.of(context).translate('saved_wifi'),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _ssidController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: 'SSID (WiFi name)',
-                    labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-                    filled: true,
-                    fillColor: Colors.grey[800],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context).translate('ssid_required');
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  style: const TextStyle(color: Colors.white),
-                  decoration: InputDecoration(
-                    labelText: AppLocalizations.of(context).translate('password'),
-                    labelStyle: TextStyle(color: Colors.white.withOpacity(0.7)),
-                    filled: true,
-                    fillColor: Colors.grey[800],
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide.none,
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 16,
-                    ),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _passwordVisible ? Icons.visibility_off : Icons.visibility,
-                        color: Colors.grey,
+                          const SizedBox(height: 8),
+                          _isScanning
+                              ? const Center(
+                                  child: CircularProgressIndicator(
+                                    color: Colors.white,
+                                  ),
+                                )
+                              : _foundNetworks.isEmpty
+                                  ? Text(
+                                      _getTranslation(
+                                          TranslationKeys.noNetworksFound),
+                                      style: const TextStyle(
+                                          color: Colors.white70),
+                                    )
+                                  : Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: const Color(0xFF95A3A4),
+                                          width: 1.0,
+                                        ),
+                                      ),
+                                      child: DropdownButtonHideUnderline(
+                                        child: DropdownButton<String>(
+                                          value: _foundNetworks.contains(
+                                                  _ssidController.text)
+                                              ? _ssidController.text
+                                              : null,
+                                          hint: Text(
+                                            _getTranslation(
+                                                TranslationKeys.selectNetwork),
+                                            style: const TextStyle(
+                                                color: Colors.black54),
+                                          ),
+                                          isExpanded: true,
+                                          icon:
+                                              const Icon(Icons.arrow_drop_down),
+                                          iconSize: 24,
+                                          elevation: 16,
+                                          onChanged: (String? newValue) {
+                                            if (newValue != null) {
+                                              setState(() {
+                                                _ssidController.text = newValue;
+                                              });
+                                            }
+                                          },
+                                          items: _foundNetworks
+                                              .map<DropdownMenuItem<String>>(
+                                                  (String value) {
+                                            return DropdownMenuItem<String>(
+                                              value: value,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 16.0),
+                                                child: Text(
+                                                  value,
+                                                  style: const TextStyle(
+                                                      color: Colors.black),
+                                                ),
+                                              ),
+                                            );
+                                          }).toList(),
+                                        ),
+                                      ),
+                                    ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: AppButton(
+                                  text: _getTranslation(
+                                      TranslationKeys.scanNetworks),
+                                  height: 40,
+                                  style: AppButtonStyle.secondary,
+                                  isLoading: _isScanning,
+                                  onPressed: _scanWifiNetworks,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            _getTranslation(TranslationKeys.manualNetworkName),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          AppTextField(
+                            controller: _ssidController,
+                            hintText:
+                                _getTranslation(TranslationKeys.enterSSID),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            _getTranslation(TranslationKeys.password),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          AppTextField(
+                            controller: _passwordController,
+                            hintText:
+                                _getTranslation(TranslationKeys.enterPassword),
+                            obscureText: !_showPassword,
+                            suffixIcon: IconButton(
+                              icon: Icon(
+                                _showPassword
+                                    ? Icons.visibility_off
+                                    : Icons.visibility,
+                                color: Colors.black54,
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  _showPassword = !_showPassword;
+                                });
+                              },
+                            ),
+                          ),
+                        ],
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _passwordVisible = !_passwordVisible;
-                        });
-                      },
-                    ),
-                  ),
-                  obscureText: !_passwordVisible,
-                  validator: (value) {
-                    if (value == null || value.trim().isEmpty) {
-                      return AppLocalizations.of(context).translate('password_required');
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _isLoading ? null : _saveNetwork,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        color: Colors.white,
-                      ),
-                    )
-                        : Text(AppLocalizations.of(context).translate('save')),
-                  ),
-                ),
-              ],
-            ),
+                    )),
+              ),
+              const SizedBox(height: 24),
+              AppButton(
+                text: _getTranslation(TranslationKeys.connectToNetwork),
+                style: AppButtonStyle.reversed,
+                isLoading: _isLoading,
+                onPressed: _connectToNetwork,
+              ),
+              const SizedBox(height: 16),
+              AppButton(
+                text: _getTranslation(TranslationKeys.saveNetwork),
+                style: AppButtonStyle.primary,
+                isLoading: _isLoading,
+                onPressed: _saveNetwork,
+              ),
+            ],
           ),
         ),
       ),

@@ -1,7 +1,7 @@
 // lib/core/providers/room_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_warmth_2025/core/services/room_service.dart';
-import 'package:smart_warmth_2025/features/room/models/room_model.dart';
+import 'package:smart_warmth_2025/core/graphql/models/room_model.dart';
 
 final roomServiceProvider = Provider<RoomService>((ref) {
   return RoomService();
@@ -67,10 +67,22 @@ class RoomsNotifier extends StateNotifier<List<RoomModel>> {
     }
   }
 
-  Future<bool> updateRoomName(String roomId, String name) async {
-    // Metodo per aggiornare il nome della stanza
-    // Da implementare se necessario
-    return false;
+// Aggiorna il metodo updateRoomName nel file room_provider.dart
+  Future<bool> updateRoomName(RoomModel room) async {
+    try {
+      final result = await _roomService.updateRoomName(room.id, room.name);
+
+      if (result) {
+        // Aggiorna lo stato locale con il nuovo nome
+        state = state.map((r) =>
+        r.id == room.id ? room : r
+        ).toList();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      return false;
+    }
   }
 
   Future<bool> addDeviceToRoom(String roomId, String deviceId) async {

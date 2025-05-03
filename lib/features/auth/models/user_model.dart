@@ -1,5 +1,5 @@
 import 'package:smart_warmth_2025/core/graphql/models/device_model.dart';
-import 'package:smart_warmth_2025/features/room/models/room_model.dart';
+import 'package:smart_warmth_2025/core/graphql/models/room_model.dart';
 
 class User {
   final String id;

@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_warmth_2025/core/graphql/models/device_model.dart';
 import 'package:smart_warmth_2025/core/services/user_service.dart';
 import 'package:smart_warmth_2025/features/auth/models/user_model.dart';
-import 'package:smart_warmth_2025/features/room/models/room_model.dart';
+import 'package:smart_warmth_2025/core/graphql/models/room_model.dart';
 
 // Classe che rappresenta lo stato dell'utente
 class UserState {
