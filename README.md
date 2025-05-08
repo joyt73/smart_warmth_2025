@@ -32,3 +32,6 @@ ref.read(overlayAlertProvider.notifier).show(
     subMessage: "Questa è una notifica importante",
     type: OverlayAlertType.info,
 );
+
+## Screen shot figma
+https://www.figma.com/design/LVCzRDXtN31qY4GhsKm8Kr/Untitled?t=3jAZ5lXVAyPK3UgK-0
