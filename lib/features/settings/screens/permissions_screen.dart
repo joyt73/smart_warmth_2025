@@ -217,7 +217,8 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen> {
   @override
   Widget build(BuildContext context) {
     final permissions = ref.watch(permissionsProvider);
-
+    final allPermissinOk = (permissions.camera && permissions.location
+        && permissions.bluetoothScan && permissions.bluetoothConnect);
     return AppScaffold(
       title: _getTranslation(TranslationKeys.permissions),
       showBackButton: true,
@@ -272,6 +273,7 @@ class _PermissionsScreenState extends ConsumerState<PermissionsScreen> {
                   ),
                 ),
               ),
+             if(!allPermissinOk)
               AppButton(
                 text: _getTranslation(TranslationKeys.requestAllPermissions),
                 style: AppButtonStyle.reversed,

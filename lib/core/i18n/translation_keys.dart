@@ -108,6 +108,10 @@ class TranslationKeys {
   static const String mode = 'mode';
   static const String devicesOn = 'devicesOn';
   static const String devicesOff = 'devicesOff';
+  static const String deviceSaved = 'deviceSaved';
+  static const String errorConnection = 'errorConnection';
+  static const String connectionFailed = 'connectionFailed';
+
 
   // Device Modes
   static const String comfort = 'comfort';
@@ -127,6 +131,16 @@ class TranslationKeys {
   static const String wifi = 'wifi';
   static const String newRoom = 'new_room';
   static const String wifiSetup = 'wifi_setup';
+  //BlueTooth
+  static const String logoutText = 'logoutText';
+  static const String title = 'title';
+  static const String howTo = 'howTo';
+  static const String errorPoweredOff = 'errorPoweredOff';
+  static const String disconnectMessage = 'disconnectMessage';
+  static const String bluetoothOff = 'bluetoothOff';
+  static const String bluetoothScan = 'bluetoothScan';
+  static const String bluetoothConnect = 'bluetoothConnect';
+  static const String nearbyDevices = 'nearby_devices';
 
   // WiFi
   static const String networkName = 'networkName';
@@ -148,8 +162,6 @@ class TranslationKeys {
   // Permissions
   static const String camera = 'camera';
   static const String location = 'location';
-  static const String bluetoothScan = 'bluetoothScan';
-  static const String bluetoothConnect = 'bluetoothConnect';
   static const String permissionGranted = 'permissionGranted';
   static const String permissionDenied = 'permissionDenied';
   static const String permissionsChecked = 'permissionsChecked';

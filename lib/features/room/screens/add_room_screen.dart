@@ -126,18 +126,22 @@ class _AddRoomScreenState extends ConsumerState<AddRoomScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return OverlayAlertWrapper(
-      child: AppScaffold(
+    return OverlayAlertWrapper(child:
+      //Container(color: Colors.orange, child:
+      AppScaffold(
         title: _getTranslation('add_room'),
         useDarkBackground: true,
-        body: SingleChildScrollView(
-          child: Padding(
-            padding: const EdgeInsets.all(24.0),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
+
+        body:
+        Stack(
+            children: [
+        Padding(
+        padding: const EdgeInsets.all(24.0),
+        child:
+        Form(
+          key: _formKey,
+          child: ListView(
+            children: [
                   Text(
                     _getTranslation('room_type'),
                     style: const TextStyle(
@@ -234,12 +238,13 @@ class _AddRoomScreenState extends ConsumerState<AddRoomScreen> {
                       onPressed: _selectedRoomType == null ? null : _saveRoom,
                     ),
                   ),
+
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
           ),
-        ),
-      ),
+        ]),),
     );
   }
 }

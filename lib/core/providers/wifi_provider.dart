@@ -417,7 +417,8 @@ class WifiNotifier extends StateNotifier<WifiState> {
   Future<List<String>> findDeviceNetworks() async {
     final networks = await scanNetworks();
     // Filtriamo per le reti che iniziano con "rad" (come nell'app originale)
-    return networks.where((ssid) => ssid.toLowerCase().startsWith('rad')).toList();
+    //return networks.where((ssid) => ssid.toLowerCase().startsWith('rad')).toList();
+    return networks.where((ssid) => ssid.toLowerCase().startsWith('')).toList();
   }
 
   // Metodo per inviare credenziali WiFi home al dispositivo connesso

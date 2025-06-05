@@ -57,8 +57,8 @@ class Translations {
       "username_required": "Username required",
 
       "house_of": "House of",
-      "no_rooms": "No rooms available",
-      "add_first_room": "Add your first room",
+      "no_rooms": "There are no rooms",
+      "add_first_room": "Start by adding your first room",
       "new_room": "New room",
       "app_slogan": "ECOLOGICAL HEATING COMFORT FOR YOUR HOME",
       "add_room": "Add room",
@@ -125,6 +125,9 @@ class Translations {
       "device_ping_failed": "Failed to send signal",
       "devicesOn": "Devices on",
       "devicesOff": "Devices off",
+      "deviceSaved": "Device saved",
+      "errorConnection": "Unable to connect.",
+      "connectionFailed": "Connection failed",
 
       "standby_mode": "Standby",
       "comfort_mode": "Comfort",
@@ -162,7 +165,18 @@ class Translations {
       'creation': 'Creation',
       'bluetooth': 'Bluetooth',
       'wifi': 'WiFi',
-
+      // BLUETOOTH
+      "logoutText": "Do you want to log out?\nBluetooth devices will be removed",
+      "info": "Bluetooth scan or QR code scan",
+      "title": "Bluetooth",
+      "howTo": "How to enable Bluetooth on the device",
+      "errorPoweredOff": "Bluetooth is off, please turn it on",
+      "disconnectMessage": "The Bluetooth device has been disconnected",
+      "bluetoothOff": "Bluetooth is off",
+      "bluetoothScan": "Scan",
+      "bluetoothConnect": "Bluetooth Connection",
+      "nearby_devices": "Nearby devices",
+      // WiFi
       "setupWifi": "Setup WiFi",
       "networkName": "Network name",
       "manualNetworkName": "Manual network name",
@@ -183,8 +197,6 @@ class Translations {
 
       "camera": "Camera",
       "location": "Location",
-      "bluetoothScan": "Bluetooth scan",
-      "bluetoothConnect": "Bluetooth connect",
       "permissionGranted": "Permission granted",
       "permissionDenied": "Permission denied",
       "permissionsChecked": "Permissions checked",
@@ -287,8 +299,8 @@ class Translations {
 
       // Home
       'house_of': 'Casa di',
-      'no_rooms': 'Nessuna stanza disponibile',
-      'add_first_room': 'Aggiungi la tua prima stanza',
+      'no_rooms': 'Non ci sono stanze',
+      'add_first_room': 'Inizia aggiungiendo la tua prima stanza',
       'new_room': 'Nuova stanza',
       'app_slogan': 'COMFORT DI RISCALDAMENTO ECOLOGICO PER LA TUA CASA',
       'add_room': 'Aggiungi stanza',
@@ -358,6 +370,9 @@ class Translations {
       'device_ping_failed': 'Errore nell’invio del segnale',
       'devicesOn': 'Dispositivi accesi',
       'devicesOff': 'Dispositivi spenti',
+      "deviceSaved": "Dispositivo salvato",
+      "errorConnection": "Non è stato possibile connettersi.",
+      "connectionFailed": "Connessione fallita",
 
       // Modalità
       'standby_mode': 'Standby',
@@ -399,6 +414,18 @@ class Translations {
       'bluetooth': 'Bluetooth',
       'wifi': 'WiFi',
 
+      // BLUETOOTH
+      "logoutText": "Vuoi effettuare il logout?\nI dispositivi Bluetooth verranno eliminati",
+      "info": "Scansione Bluetooth o scansione codice QR",
+      "title": "Bluetooth",
+      "howTo": "Come attivare il bluetooth sul dispositivo",
+      "errorPoweredOff": "Il Bluetooth è spento, accenderlo",
+      "disconnectMessage": "Il dispositivo bluetooth è stato disconnesso",
+      "bluetoothOff": "Il bluetooth è spento",
+      "bluetoothScan": "Scansione",
+      "bluetoothConnect": "Connessione Bluetooth",
+      "nearby_devices": "Dispositivi nelle vicinanze",
+
       // WiFi
       'setupWifi': 'Imposta rete WiFi',
       'networkName': 'Nome rete',
@@ -421,8 +448,6 @@ class Translations {
       // Permessi
       'camera': 'Camera',
       'location': 'Location',
-      'bluetoothScan': 'Scan Bluetooth',
-      'bluetoothConnect': 'Connessione Bluetooth',
       'permissionGranted': 'Permesso concesso',
       'permissionDenied': 'Permesso negato',
       'permissionsChecked': 'Permessi verificati',
@@ -527,8 +552,8 @@ class Translations {
       "username_required": "Nom d'utilisateur requis",
 
       "house_of": "Maison de",
-      "no_rooms": "Aucune pièce disponible",
-      "add_first_room": "Ajoutez votre première pièce",
+      "no_rooms": "Il n'y a pas de pièces",
+      "add_first_room": "Commencez par ajouter votre première pièce",
       "new_room": "Nouvelle pièce",
       "app_slogan": "CONFORT CHAUFFAGE ÉCOLOGIQUE POUR VOTRE MAISON",
       "add_room": "Ajouter une pièce",
@@ -595,6 +620,9 @@ class Translations {
       "device_ping_failed": "Échec de l'envoi du signal",
       "devicesOn": "Appareils allumés",
       "devicesOff": "Appareils éteints",
+      "deviceSaved": "Appareil enregistré",
+      "errorConnection": "Impossible de se connecter.",
+      "connectionFailed": "Échec de la connexion",
 
       "standby_mode": "Veille",
       "comfort_mode": "Confort",
@@ -632,7 +660,18 @@ class Translations {
       "creation": "Création",
       "bluetooth": "Bluetooth",
       "wifi": "Wi-Fi",
-
+      // BLUETOOTH
+      "logoutText": "Voulez-vous vous déconnecter ?\nLes appareils Bluetooth seront supprimés",
+      "info": "Scan Bluetooth ou scan de code QR",
+      "title": "Bluetooth",
+      "howTo": "Comment activer le Bluetooth sur l'appareil",
+      "errorPoweredOff": "Le Bluetooth est désactivé, veuillez l'activer",
+      "disconnectMessage": "L'appareil Bluetooth a été déconnecté",
+      "bluetoothOff": "Le Bluetooth est désactivé",
+      "bluetoothScan": "Scan",
+      "bluetoothConnect": "Connexion Bluetooth",
+      "nearby_devices": "Appareils à proximité",
+      // WiFi
       "setupWifi": "Configurer WiFi",
       "networkName": "Nom du réseau",
       "manualNetworkName": "Nom réseau manuel",
@@ -653,8 +692,6 @@ class Translations {
 
       "camera": "Caméra",
       "location": "Localisation",
-      "bluetoothScan": "Scan Bluetooth",
-      "bluetoothConnect": "Connexion Bluetooth",
       "permissionGranted": "Autorisation accordée",
       "permissionDenied": "Autorisation refusée",
       "permissionsChecked": "Autorisations vérifiées",
@@ -754,8 +791,8 @@ class Translations {
       "username_required": "Nombre de usuario requerido",
 
       "house_of": "Casa de",
-      "no_rooms": "No hay habitaciones disponibles",
-      "add_first_room": "Agrega tu primera habitación",
+      "no_rooms": "No hay habitaciones",
+      "add_first_room": "Empieza añadiendo tu primera habitación",
       "new_room": "Nueva habitación",
       "app_slogan": "CONFORT Y CALEFACCIÓN ECOLÓGICA PARA TU HOGAR",
       "add_room": "Añadir habitación",
@@ -822,6 +859,9 @@ class Translations {
       "device_ping_failed": "Error al enviar la señal",
       "devicesOn": "Dispositivos encendidos",
       "devicesOff": "Dispositivos apagados",
+      "deviceSaved": "Dispositivo guardado",
+      "errorConnection": "No se pudo conectar.",
+      "connectionFailed": "Conexión fallida",
 
       "standby_mode": "Espera",
       "comfort_mode": "Confort",
@@ -859,7 +899,18 @@ class Translations {
       "creation": "Creación",
       "bluetooth": "Bluetooth",
       "wifi": "Wi-Fi",
-
+      // BLUETOOTH
+      "logoutText": "¿Quieres cerrar sesión?\nLos dispositivos Bluetooth se eliminarán",
+      "info": "Escaneo Bluetooth o escaneo de código QR",
+      "title": "Bluetooth",
+      "howTo": "Cómo activar el Bluetooth en el dispositivo",
+      "errorPoweredOff": "El Bluetooth está apagado, por favor enciéndelo",
+      "disconnectMessage": "El dispositivo Bluetooth se ha desconectado",
+      "bluetoothOff": "El Bluetooth está apagado",
+      "bluetoothScan": "Escaneo",
+      "bluetoothConnect": "Conexión Bluetooth",
+      "nearby_devices": "Dispositivos cercanos",
+      // WiFi
       "setupWifi": "Configurar WiFi",
       "networkName": "Nombre de red",
       "manualNetworkName": "Nombre de red manual",
@@ -880,8 +931,6 @@ class Translations {
 
       "camera": "Cámara",
       "location": "Ubicación",
-      "bluetoothScan": "Escaneo Bluetooth",
-      "bluetoothConnect": "Conexión Bluetooth",
       "permissionGranted": "Permiso concedido",
       "permissionDenied": "Permiso denegado",
       "permissionsChecked": "Permisos verificados",

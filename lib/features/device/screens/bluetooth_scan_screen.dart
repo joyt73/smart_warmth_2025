@@ -7,15 +7,18 @@ import 'package:go_router/go_router.dart';
 import 'package:smart_warmth_2025/core/bluetooth/ble_manager.dart';
 import 'package:smart_warmth_2025/core/bluetooth/ble_provider.dart';
 import 'package:smart_warmth_2025/core/i18n/app_localizations.dart';
+import 'package:smart_warmth_2025/core/i18n/translation_keys.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_button.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_scaffold.dart';
 import 'package:smart_warmth_2025/shared/widgets/app_text.dart';
+import 'package:smart_warmth_2025/shared/widgets/overlay_alert.dart';
 
 class BluetoothScanScreen extends ConsumerStatefulWidget {
   const BluetoothScanScreen({Key? key}) : super(key: key);
 
   @override
-  ConsumerState<BluetoothScanScreen> createState() => _BluetoothScanScreenState();
+  ConsumerState<BluetoothScanScreen> createState() =>
+      _BluetoothScanScreenState();
 }
 
 class _BluetoothScanScreenState extends ConsumerState<BluetoothScanScreen> {
@@ -93,7 +96,7 @@ class _BluetoothScanScreenState extends ConsumerState<BluetoothScanScreen> {
       } else {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(_getTranslation('connection_failed'))),
+            SnackBar(content: Text(_getTranslation(TranslationKeys.connectionFailed))),
           );
         }
       }
@@ -101,7 +104,7 @@ class _BluetoothScanScreenState extends ConsumerState<BluetoothScanScreen> {
       debugPrint('Errore di connessione: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(_getTranslation('connection_error'))),
+          SnackBar(content: Text(_getTranslation(TranslationKeys.errorConnection))),
         );
       }
     } finally {
@@ -120,7 +123,7 @@ class _BluetoothScanScreenState extends ConsumerState<BluetoothScanScreen> {
     Navigator.of(context).pop(); // Chiudi il dialogo
 
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_getTranslation('device_saved'))),
+      SnackBar(content: Text(_getTranslation(TranslationKeys.deviceSaved))),
     );
 
     context.go('/home');
@@ -132,21 +135,21 @@ class _BluetoothScanScreenState extends ConsumerState<BluetoothScanScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text(_getTranslation('new_device_name')),
+        title: Text(_getTranslation(TranslationKeys.deviceName)),
         content: TextField(
           controller: nameController,
           decoration: InputDecoration(
-            labelText: _getTranslation('device_name'),
+            labelText: _getTranslation(TranslationKeys.deviceName),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: Text(_getTranslation('cancel')),
+            child: Text(_getTranslation(TranslationKeys.cancel)),
           ),
           TextButton(
             onPressed: () => _saveDeviceWithName(device, nameController.text),
-            child: Text(_getTranslation('save')),
+            child: Text(_getTranslation(TranslationKeys.save)),
           ),
         ],
       ),
@@ -156,90 +159,83 @@ class _BluetoothScanScreenState extends ConsumerState<BluetoothScanScreen> {
   @override
   Widget build(BuildContext context) {
     final isBluetoothOn = ref.watch(bluetoothStateProvider);
-
-    return AppScaffold(
-      title: _getTranslation('bluetooth'),
-      showBackButton: true,
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              _getTranslation('bluetooth_scan_info'),
-              style: const TextStyle(
-                fontSize: 16,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 24),
-
-            AppButton(
-              text: _getTranslation('scan'),
-              isLoading: _isScanning,
-              onPressed: isBluetoothOn ? _scanForDevices : null,
-              leadingIcon: const Icon(Icons.bluetooth_searching),
-            ),
-
-            const SizedBox(height: 24),
-
-            AppText(
-              text: _getTranslation('nearby_devices'),
-              preset: TextPreset.subheading,
-            ),
-
-            const SizedBox(height: 16),
-
-            if (_isScanning)
-              const Center(
-                child: CircularProgressIndicator(),
-              )
-            else if (_hasScanned && _devices.isEmpty)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    _getTranslation('no_devices_found'),
-                    style: const TextStyle(
-                      color: Colors.white70,
-                    ),
-                  ),
+    return OverlayAlertWrapper(
+      child: AppScaffold(
+        title: _getTranslation(TranslationKeys.bluetooth),
+        showBackButton: true,
+        body: Stack(children: [
+          Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: ListView(
+              //crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 24),
+                AppButton(
+                  text: _getTranslation(TranslationKeys.bluetoothScan),
+                  isLoading: _isScanning,
+                  onPressed: isBluetoothOn ? _scanForDevices : null,
+                  leadingIcon: const Icon(Icons.bluetooth_searching, color: Colors.white,),
                 ),
-              )
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: _devices.length,
-                itemBuilder: (context, index) {
-                  final device = _devices[index];
-                  final isConnecting = _connectingDeviceId == device.id;
-
-                  return Card(
-                    margin: const EdgeInsets.only(bottom: 8),
-                    child: ListTile(
-                      title: Text(device.name),
-                      subtitle: Text(device.id),
-                      leading: const Icon(Icons.bluetooth),
-                      trailing: isConnecting
-                          ? const SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                          : IconButton(
-                        icon: const Icon(Icons.connect_without_contact),
-                        onPressed: () => _showNameInputDialog(device),
+                const SizedBox(height: 24),
+                AppText(
+                  text: _getTranslation(TranslationKeys.nearbyDevices),
+                  preset: TextPreset.subheading,
+                ),
+                const SizedBox(height: 16),
+                if (_isScanning)
+                  const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                else if (_hasScanned && _devices.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Text(
+                        _getTranslation(TranslationKeys.noDevices),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                        ),
                       ),
-                      onTap: isConnecting
-                          ? null
-                          : () => _connectToDevice(device),
                     ),
-                  );
-                },
-              ),
-          ],
-        ),
+                  )
+                else
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _devices.length,
+                    itemBuilder: (context, index) {
+                      final device = _devices[index];
+                      final isConnecting = _connectingDeviceId == device.id;
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 8),
+                        child: ListTile(
+                          title: Text(device.name),
+                          subtitle: Text(device.id),
+                          leading: const Icon(Icons.bluetooth),
+                          trailing: isConnecting
+                              ? const SizedBox(
+                                  width: 24,
+                                  height: 24,
+                                  child:
+                                      CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : IconButton(
+                                  icon:
+                                      const Icon(Icons.connect_without_contact),
+                                  onPressed: () => _showNameInputDialog(device),
+                                ),
+                          onTap: isConnecting
+                              ? null
+                              : () => _connectToDevice(device),
+                        ),
+                      );
+                    },
+                  ),
+              ],
+            ),
+          ),
+        ]),
       ),
     );
   }

@@ -167,7 +167,7 @@ class BleManager {
     ).listen((device) {
       // Filtra dispositivi che contengono 'One' nel nome e non sono già stati trovati
       if (device.name.isNotEmpty &&
-          device.name.contains('One') &&
+          //device.name.contains('One') &&
           !deviceIds.contains(device.id) &&
           !devices.any((d) => d.id == device.id)) {
         devices.add(device);

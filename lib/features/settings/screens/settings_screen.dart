@@ -249,7 +249,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16.0),
                     child: Text(
-                      _getTranslation(TranslationKeys.selectLanguage),
+                      _getTranslation(TranslationKeys.changeLanguage),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
